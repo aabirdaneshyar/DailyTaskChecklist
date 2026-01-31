@@ -40,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
@@ -1100,7 +1102,6 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddMedicineDialog(
     onDismiss: () -> Unit,
@@ -1111,88 +1112,151 @@ fun AddMedicineDialog(
     val timeOptions = listOf("Breakfast", "Lunch", "Dinner")
     var selectedTimes by remember { mutableStateOf(setOf<String>()) }
 
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        title = { 
-            Text(
-                "New Medicine", 
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = TextHeader
-            ) 
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Medicine Name") },
-                    placeholder = { Text("e.g. Paracetamol") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    leadingIcon = { Icon(Icons.Default.MedicalServices, null) }
-                )
-                OutlinedTextField(
-                    value = tablets,
-                    onValueChange = { tablets = it },
-                    label = { Text("Number of tablets") },
-                    placeholder = { Text("e.g. 1") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                
-                Column {
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Header Icon & Title
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(
+                        modifier = Modifier.size(64.dp),
+                        shape = CircleShape,
+                        color = BluePrimary.copy(alpha = 0.1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MedicalServices,
+                            contentDescription = null,
+                            modifier = Modifier.padding(16.dp),
+                            tint = BluePrimary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        "Schedule", 
+                        text = "New Medicine",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = TextHeader
+                    )
+                }
+
+                // Input Fields
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Medicine Name") },
+                        placeholder = { Text("e.g. Paracetamol") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BluePrimary,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedLabelColor = BluePrimary
+                        )
+                    )
+                    OutlinedTextField(
+                        value = tablets,
+                        onValueChange = { tablets = it },
+                        label = { Text("Number of tablets") },
+                        placeholder = { Text("e.g. 1") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BluePrimary,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedLabelColor = BluePrimary
+                        )
+                    )
+                }
+
+                // Schedule Selector (Mini Tab Style)
+                Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Schedule",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = BluePrimary
+                        color = TextHeader
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         timeOptions.forEach { time ->
-                            FilterChip(
-                                selected = selectedTimes.contains(time),
-                                onClick = {
-                                    selectedTimes = if (selectedTimes.contains(time)) {
-                                        selectedTimes - time
-                                    } else {
-                                        selectedTimes + time
-                                    }
-                                },
-                                label = { Text(time) },
-                                shape = RoundedCornerShape(8.dp)
-                            )
+                            val isSelected = selectedTimes.contains(time)
+                            val chipColor = when(time) {
+                                "Breakfast" -> if (isSelected) Color(0xFF1976D2) else Color(0xFFE3F2FD)
+                                "Lunch" -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
+                                "Dinner" -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
+                                else -> BluePrimary
+                            }
+                            
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(chipColor)
+                                    .clickable {
+                                        selectedTimes = if (isSelected) selectedTimes - time else selectedTimes + time
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = time,
+                                    color = if (isSelected) Color.White else chipColor.copy(alpha = 1f).compositeOver(Color.Black).copy(alpha = 0.8f),
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty()) {
-                        onConfirm(name, tablets, selectedTimes.joinToString(", "))
+
+                // Action Buttons
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { onConfirm(name, tablets, selectedTimes.joinToString(", ")) },
+                        enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BluePrimary,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text("Add to List", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
-                },
-                enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add to List")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cancel", color = TextSecondary)
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Cancel", color = TextSecondary, fontWeight = FontWeight.Medium)
+                    }
+                }
             }
         }
-    )
+    }
+}
+
+private fun Color.compositeOver(background: Color): Color {
+    return background // Simplified for helper
 }
