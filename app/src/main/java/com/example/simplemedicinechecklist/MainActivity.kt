@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -219,9 +220,10 @@ fun SplashScreen() {
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = painterResource(id = R.drawable.app_icon_v2),
                             contentDescription = "App Logo",
-                            modifier = Modifier.fillMaxSize().padding(24.dp)
+                            modifier = Modifier.fillMaxSize().scale(1.5f),
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
@@ -487,22 +489,24 @@ fun ChecklistPage(
                 .padding(horizontal = 24.dp)
         ) {
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
-                Text(
-                    text = "Daily Checklist for",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 20.sp
-                    ),
-                    color = TextHeader
-                )
-                Text(
-                    text = formatUIDate(currentDateStr),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 24.sp
-                    ),
-                    color = TextHeader
-                )
+                Column {
+                    Text(
+                        text = "Daily Checklist for",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 20.sp
+                        ),
+                        color = TextHeader
+                    )
+                    Text(
+                        text = formatUIDate(currentDateStr),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 24.sp
+                        ),
+                        color = TextHeader
+                    )
+                }
             }
 
             // New Custom Tab Row matching Tab buttons.png

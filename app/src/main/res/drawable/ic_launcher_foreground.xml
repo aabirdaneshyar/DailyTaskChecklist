@@ -1,54 +1,11 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="100"
-    android:viewportHeight="100">
-
-    <!-- Scale everything down to fit inside the adaptive icon safe area -->
-    <group
-        android:scaleX="0.7"
-        android:scaleY="0.7"
-        android:translateX="15"
-        android:translateY="15">
-
-        <!-- Notepad (Clipboard) -->
-        <path
-            android:fillColor="#1E88E5"
-            android:pathData="M35,25 h45 q5,0 5,5 v50 q0,5 -5,5 h-45 q-5,0 -5,-5 v-50 q0,-5 5,-5z" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M40,35 h35 v35 h-35z" />
-        <!-- Lines on notepad -->
-        <path android:fillColor="#E3F2FD" android:pathData="M45,45 h25 v2 h-25z M45,55 h25 v2 h-25z M45,65 h25 v2 h-25z" />
-        <!-- Notepad Rings -->
-        <group android:translateY="2">
-            <path android:fillColor="#FFB300" android:pathData="M40,22 q2,0 2,2 v4 q0,2 -2,2 q-2,0 -2,-2 v-4 q0,-2 2,-2z" />
-            <path android:fillColor="#FFB300" android:pathData="M50,22 q2,0 2,2 v4 q0,2 -2,2 q-2,0 -2,-2 v-4 q0,-2 2,-2z" />
-            <path android:fillColor="#FFB300" android:pathData="M60,22 q2,0 2,2 v4 q0,2 -2,2 q-2,0 -2,-2 v-4 q0,-2 2,-2z" />
-            <path android:fillColor="#FFB300" android:pathData="M70,22 q2,0 2,2 v4 q0,2 -2,2 q-2,0 -2,-2 v-4 q0,-2 2,-2z" />
-        </group>
-
-        <!-- Pill (Capsule) - Rotated -->
-        <group android:rotation="-35" android:pivotX="25" android:pivotY="45" android:translateX="2" android:translateY="2">
-            <!-- Red Half -->
-            <path
-                android:fillColor="#E53935"
-                android:pathData="M10,40 h20 v20 h-20 q-10,0 -10,-10 q0,-10 10,-10z" />
-            <!-- White Half -->
-            <path
-                android:fillColor="#F5F5F5"
-                android:pathData="M30,40 h20 q10,0 10,10 q0,10 -10,10 h-20z" />
-        </group>
-
-        <!-- Green Checklist Tick Badge (Bottom Right) -->
-        <group android:translateX="5" android:translateY="5">
-            <path
-                android:fillColor="#43A047"
-                android:pathData="M85,75 c0,9.39 -7.61,17 -17,17 c-9.39,0 -17,-7.61 -17,-17 c0,-9.39 7.61,-17 17,-17 c9.39,0 17,7.61 17,17z" />
-            <!-- White Tick -->
-            <path
-                android:fillColor="#FFFFFF"
-                android:pathData="M60,75 l5,5 l12,-12 l-2,-2 l-10,10 l-3,-3z" />
-        </group>
-    </group>
-</vector>
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:width="86dp"
+        android:height="86dp"
+        android:gravity="center">
+        <bitmap
+            android:src="@drawable/app_icon_v2"
+            android:filter="true" />
+    </item>
+</layer-list>

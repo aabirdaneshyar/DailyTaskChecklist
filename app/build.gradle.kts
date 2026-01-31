@@ -38,6 +38,16 @@ kotlin {
     jvmToolchain(11)
 }
 
+tasks.register<Copy>("copyAppIcons") {
+    from(file("${project.rootDir}/AppIconNew.png")) {
+        rename { "app_icon_new.png" }
+    }
+    from(file("${project.rootDir}/AppIconNew2.png")) {
+        rename { "app_icon_v2.png" }
+    }
+    into(file("${project.projectDir}/src/main/res/drawable"))
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
