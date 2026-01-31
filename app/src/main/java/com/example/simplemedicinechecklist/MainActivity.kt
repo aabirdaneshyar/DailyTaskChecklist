@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
 fun MedicineAppContainer(viewModel: MedicineViewModel) {
     val medicines by viewModel.medicines.collectAsState()
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
+    var isFromOptions by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val activity = (context as? ComponentActivity)
 
@@ -108,6 +109,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         currentScreen = if (medicines.isNotEmpty()) {
             Screen.Checklist
         } else {
+            isFromOptions = false
             Screen.AddMedicine
         }
     }
@@ -116,6 +118,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
     LaunchedEffect(medicines) {
         if (currentScreen != Screen.Splash) {
             if (medicines.isEmpty() && currentScreen == Screen.Checklist) {
+                isFromOptions = false
                 currentScreen = Screen.AddMedicine
             }
         }
@@ -128,7 +131,12 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         } else {
             when (currentScreen) {
                 Screen.Options -> currentScreen = Screen.Checklist
-                Screen.AddMedicine -> currentScreen = Screen.Options
+                Screen.AddMedicine -> {
+                    if (isFromOptions) {
+                        currentScreen = Screen.Options
+                        isFromOptions = false
+                    }
+                }
                 Screen.MonthlyStatus -> currentScreen = Screen.Options
                 Screen.About -> currentScreen = Screen.Options
                 else -> {}
@@ -142,10 +150,19 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
             AddMedicinePage(
                 viewModel = viewModel,
                 medicines = medicines,
+                showBackIcon = isFromOptions,
                 onBack = { 
-                    if (medicines.isEmpty()) activity?.finish() else currentScreen = Screen.Options 
+                    currentScreen = Screen.Options
+                    isFromOptions = false
                 },
-                onDone = { currentScreen = Screen.Checklist }
+                onDone = { 
+                    if (isFromOptions) {
+                        currentScreen = Screen.Options
+                    } else {
+                        currentScreen = Screen.Checklist 
+                    }
+                    isFromOptions = false
+                }
             )
         }
         Screen.Checklist -> {
@@ -157,7 +174,10 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
         Screen.Options -> {
             OptionsPage(
-                onNavigateToManage = { currentScreen = Screen.AddMedicine },
+                onNavigateToManage = { 
+                    isFromOptions = true
+                    currentScreen = Screen.AddMedicine 
+                },
                 onNavigateToMonthlyStatus = { currentScreen = Screen.MonthlyStatus },
                 onNavigateToAbout = { currentScreen = Screen.About },
                 onBack = { currentScreen = Screen.Checklist }
@@ -272,6 +292,7 @@ fun SplashScreen() {
 fun AddMedicinePage(
     viewModel: MedicineViewModel,
     medicines: List<Medicine>,
+    showBackIcon: Boolean,
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
@@ -283,7 +304,11 @@ fun AddMedicinePage(
             CenterAlignedTopAppBar(
                 title = { Text("Manage Medicines", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
-                    // Back icon removed as per user request
+                    if (showBackIcon) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                        }
+                    }
                 },
                 actions = {
                     TextButton(
@@ -506,7 +531,7 @@ fun ChecklistPage(
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Column {
                     Text(
-                        text = "Daily Checklist for",
+                        text = "Daily Medicine Checklist for",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp
