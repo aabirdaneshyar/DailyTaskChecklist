@@ -856,14 +856,19 @@ fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, o
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            Row(modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                StatusTab(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatusTabButton(
                     text = "Current Month",
                     isSelected = selectedMonthIndex == 0,
                     modifier = Modifier.weight(1f),
                     onClick = { selectedMonthIndex = 0 }
                 )
-                StatusTab(
+                StatusTabButton(
                     text = "Previous Month",
                     isSelected = selectedMonthIndex == 1,
                     modifier = Modifier.weight(1f),
@@ -871,7 +876,7 @@ fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, o
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
                 text = monthName,
@@ -892,21 +897,28 @@ fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, o
             ) {
                 Column {
                     Row(
-                        modifier = Modifier.fillMaxWidth().background(Color(0xFFF8FBFF)).padding(vertical = 12.dp, horizontal = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(BluePrimary)
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TableHeaderCell("Date", Modifier.weight(1.2f))
+                        VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell("Breakfast", Modifier.weight(1f))
+                        VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell("Lunch", Modifier.weight(1f))
+                        VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell("Dinner", Modifier.weight(1f))
                     }
-                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), thickness = 1.dp)
 
-                    val dates = remember(selectedMonthIndex) { getDatesForMonth(selectedMonthIndex) }
+                    val dates = remember(selectedMonthIndex) { 
+                        getDatesForMonth(if (selectedMonthIndex == 0) 0 else -1) 
+                    }
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(dates) { date ->
                             StatusRow(date, records, medicines)
-                            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.2f), thickness = 0.5.dp)
+                            HorizontalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
                         }
                     }
                 }
@@ -916,22 +928,37 @@ fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, o
 }
 
 @Composable
-fun StatusTab(text: String, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-    Box(
-        modifier = modifier.fillMaxHeight().clickable { onClick() },
-        contentAlignment = Alignment.Center
+fun StatusTabButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isSelected) BluePrimary else Color.White,
+        label = "bgColor"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isSelected) Color.White else BluePrimary,
+        label = "contentColor"
+    )
+
+    Surface(
+        modifier = modifier
+            .height(48.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(24.dp),
+        color = backgroundColor,
+        shadowElevation = if (isSelected) 4.dp else 1.dp,
+        border = if (!isSelected) BorderStroke(1.dp, BluePrimary.copy(alpha = 0.2f)) else null
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(contentAlignment = Alignment.Center) {
             Text(
                 text = text,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) BluePrimary else TextSecondary,
-                fontSize = 16.sp
+                fontWeight = FontWeight.Bold,
+                color = contentColor,
+                fontSize = 14.sp
             )
-            if (isSelected) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(modifier = Modifier.width(100.dp).height(3.dp).background(BluePrimary, RoundedCornerShape(2.dp)))
-            }
         }
     }
 }
@@ -943,26 +970,43 @@ fun TableHeaderCell(text: String, modifier: Modifier) {
         modifier = modifier,
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
-        color = TextSecondary,
+        color = Color.White,
         fontSize = 14.sp
     )
+}
+
+fun formatReportDate(date: Date): String {
+    val calendar = Calendar.getInstance()
+    calendar.time = date
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+    val suffix = when (day) {
+        1, 21, 31 -> "st"
+        2, 22 -> "nd"
+        3, 23 -> "rd"
+        else -> "th"
+    }
+    val monthYear = SimpleDateFormat("MMM yyyy", Locale.getDefault()).format(date)
+    return "$day$suffix $monthYear"
 }
 
 @Composable
 fun StatusRow(date: Date, records: List<MedicineRecord>, medicines: List<Medicine>) {
     val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
-    val displayDate = SimpleDateFormat("d MMM", Locale.getDefault()).format(date)
+    val displayDate = formatReportDate(date)
     
     val rowRecords = records.filter { it.date == dateStr }
     
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(displayDate, modifier = Modifier.weight(1.2f), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
-        StatusCell(Modifier.weight(1f), getStatus("Breakfast", date, rowRecords, medicines))
-        StatusCell(Modifier.weight(1f), getStatus("Lunch", date, rowRecords, medicines))
-        StatusCell(Modifier.weight(1f), getStatus("Dinner", date, rowRecords, medicines))
+        Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
+        VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Breakfast", date, rowRecords, medicines))
+        VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Lunch", date, rowRecords, medicines))
+        VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Dinner", date, rowRecords, medicines))
     }
 }
 
@@ -999,6 +1043,11 @@ fun getStatus(slot: String, date: Date, records: List<MedicineRecord>, medicines
 fun getDatesForMonth(monthOffset: Int): List<Date> {
     val dates = mutableListOf<Date>()
     val cal = Calendar.getInstance()
+    cal.set(Calendar.HOUR_OF_DAY, 0)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    
     cal.add(Calendar.MONTH, monthOffset)
     cal.set(Calendar.DAY_OF_MONTH, 1)
     val month = cal.get(Calendar.MONTH)
@@ -1006,7 +1055,7 @@ fun getDatesForMonth(monthOffset: Int): List<Date> {
         dates.add(cal.time)
         cal.add(Calendar.DAY_OF_MONTH, 1)
     }
-    return dates.reversed()
+    return dates
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
