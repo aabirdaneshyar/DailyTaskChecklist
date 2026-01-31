@@ -144,7 +144,8 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
                 medicines = medicines,
                 onBack = { 
                     if (medicines.isEmpty()) activity?.finish() else currentScreen = Screen.Options 
-                }
+                },
+                onDone = { currentScreen = Screen.Checklist }
             )
         }
         Screen.Checklist -> {
@@ -271,18 +272,30 @@ fun SplashScreen() {
 fun AddMedicinePage(
     viewModel: MedicineViewModel,
     medicines: List<Medicine>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onDone: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var medicineToDelete by remember { mutableStateOf<Medicine?>(null) }
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("Manage Medicines", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                    // Back icon removed as per user request
+                },
+                actions = {
+                    TextButton(
+                        onClick = onDone,
+                        enabled = medicines.isNotEmpty()
+                    ) {
+                        Text(
+                            text = "Done",
+                            fontWeight = FontWeight.Bold,
+                            color = if (medicines.isNotEmpty()) BluePrimary else Color.Gray,
+                            fontSize = 18.sp
+                        )
                     }
                 }
             )
@@ -914,8 +927,9 @@ fun MedicineEditCard(medicine: Medicine, onDelete: () -> Unit) {
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
+                val tabletText = if (medicine.numberOfTablets == "1") "tablet" else "tablets"
                 Text(
-                    text = "${medicine.numberOfTablets} tablets • ${medicine.times}",
+                    text = "${medicine.numberOfTablets} $tabletText • ${medicine.times}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -978,8 +992,9 @@ fun MedicineChecklistCard(medicine: Medicine, isTaken: Boolean, onToggle: () -> 
                         color = if (isTaken) TextSecondary else TextPrimary
                     )
                 )
+                val tabletText = if (medicine.numberOfTablets == "1") "tablet" else "tablets"
                 Text(
-                    text = "${medicine.numberOfTablets} tablets",
+                    text = "${medicine.numberOfTablets} $tabletText",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
