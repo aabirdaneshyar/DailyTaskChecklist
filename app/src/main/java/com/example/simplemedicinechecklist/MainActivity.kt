@@ -480,8 +480,10 @@ fun ChecklistPage(
                     shape = RoundedCornerShape(16.dp),
                     elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 4.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSaved) Color.Gray else if (!allTaken) BluePrimary.copy(alpha = 0.5f) else BluePrimary,
-                        contentColor = Color.White
+                        containerColor = if (isSaved) Color.Gray else BluePrimary,
+                        contentColor = Color.White,
+                        disabledContainerColor = if (isSaved) Color.Gray else BluePrimary.copy(alpha = 0.38f),
+                        disabledContentColor = Color.White.copy(alpha = 0.74f)
                     )
                 ) {
                     Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
