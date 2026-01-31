@@ -27,11 +27,17 @@ class MedicineViewModel(private val dao: MedicineDao) : ViewModel() {
             initialValue = emptyList()
         )
 
-    fun updateDate() {
+    /**
+     * Updates the date and returns true if the date has changed.
+     */
+    fun updateDate(): Boolean {
         val newDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         if (_currentDate.value != newDate) {
             _currentDate.value = newDate
+            // If date changed, we should ensure records are fresh
+            return true
         }
+        return false
     }
 
     fun getRecordsForMonth(monthOffset: Int): Flow<List<MedicineRecord>> {

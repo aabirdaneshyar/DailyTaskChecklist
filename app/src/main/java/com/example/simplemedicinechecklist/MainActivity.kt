@@ -27,12 +27,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,9 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.simplemedicinechecklist.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -84,7 +89,21 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
     var isFromOptions by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val activity = (context as? ComponentActivity)
+
+    // Handle Background/Foreground Date Refresh
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.updateDate()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // Reactive Date & Reset Logic
     LaunchedEffect(Unit) {
@@ -407,6 +426,7 @@ fun ChecklistPage(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Breakfast", "Lunch", "Dinner")
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val currentTabTitle = tabs[selectedTabIndex]
     
     val currentDateStr by viewModel.currentDate.collectAsState()
@@ -439,6 +459,18 @@ fun ChecklistPage(
         }
     }
 
+    // Animation for refresh button
+    var isRefreshing by remember { mutableStateOf(false) }
+    val rotation = animateFloatAsState(
+        targetValue = if (isRefreshing) 360f else 0f,
+        animationSpec = if (isRefreshing) {
+            infiniteRepeatable(tween(1000, easing = LinearEasing))
+        } else {
+            tween(0)
+        },
+        label = "refreshRotation"
+    )
+
     fun formatUIDate(dateStr: String): String {
         return try {
             val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
@@ -463,11 +495,24 @@ fun ChecklistPage(
             CenterAlignedTopAppBar(
                 title = { },
                 actions = {
-                    IconButton(onClick = { /* Refresh logic removed */ }) {
+                    IconButton(onClick = { 
+                        scope.launch {
+                            isRefreshing = true
+                            val didChange = viewModel.updateDate()
+                            delay(1000) // Visual feedback duration
+                            isRefreshing = false
+                            if (didChange) {
+                                Toast.makeText(context, "Data updated for the new day!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Already up to date", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Refresh",
-                            tint = TextHeader.copy(alpha = 0.7f)
+                            tint = TextHeader.copy(alpha = 0.7f),
+                            modifier = Modifier.rotate(rotation.value)
                         )
                     }
                     IconButton(onClick = onOpenOptions) {
