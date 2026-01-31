@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -94,7 +95,6 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = (context as? ComponentActivity)
 
-    // Handle Background/Foreground Date Refresh
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -107,7 +107,6 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
     }
 
-    // Reactive Date & Reset Logic
     LaunchedEffect(Unit) {
         val sharedPref = context.getSharedPreferences("medicine_prefs", Context.MODE_PRIVATE)
         while(true) {
@@ -116,7 +115,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
             
             if (currentDateStr != lastResetDate) {
                 viewModel.resetAllMedicines()
-                viewModel.pruneOldRecords() // Keep only current and previous month
+                viewModel.pruneOldRecords()
                 sharedPref.edit { putString("last_reset_date", currentDateStr) }
             }
             viewModel.updateDate()
@@ -124,7 +123,6 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
     }
 
-    // Initial navigation logic
     LaunchedEffect(Unit) {
         delay(2500) 
         currentScreen = if (medicines.isNotEmpty()) {
@@ -135,7 +133,6 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
     }
 
-    // Reactive navigation for empty state
     LaunchedEffect(medicines) {
         if (currentScreen != Screen.Splash) {
             if (medicines.isEmpty() && currentScreen == Screen.Checklist) {
@@ -145,7 +142,6 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
     }
 
-    // Navigation back button handling
     BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
         if (medicines.isEmpty() && currentScreen == Screen.AddMedicine) {
             activity?.finish()
@@ -207,6 +203,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         Screen.MonthlyStatus -> {
             MonthlyStatusPage(
                 viewModel = viewModel,
+                medicines = medicines,
                 onBack = { currentScreen = Screen.Options }
             )
         }
@@ -277,7 +274,7 @@ fun SplashScreen() {
                 fontWeight = FontWeight.Black,
                 color = BluePrimary,
                 letterSpacing = 1.sp,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -286,7 +283,7 @@ fun SplashScreen() {
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = BluePrimary.copy(alpha = 0.8f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
@@ -435,12 +432,10 @@ fun ChecklistPage(
     val todayRecords by viewModel.todayRecords.collectAsState()
     val isSaved = todayRecords.any { it.timeSlot == currentTabTitle }
 
-    // Completion status for all tabs
     val breakfastCompleted = todayRecords.any { it.timeSlot == "Breakfast" }
     val lunchCompleted = todayRecords.any { it.timeSlot == "Lunch" }
     val dinnerCompleted = todayRecords.any { it.timeSlot == "Dinner" }
 
-    // Current tab medicines logic
     val currentTabMedicines = remember(medicines, todayRecords, selectedTabIndex) {
         if (isSaved) {
             val savedNames = todayRecords.filter { it.timeSlot == currentTabTitle }.map { it.medicineName }
@@ -461,7 +456,6 @@ fun ChecklistPage(
         }
     }
 
-    // Animation for refresh button
     var isRefreshing by remember { mutableStateOf(false) }
     val rotation = animateFloatAsState(
         targetValue = if (isRefreshing) 360f else 0f,
@@ -501,7 +495,7 @@ fun ChecklistPage(
                         scope.launch {
                             isRefreshing = true
                             val didChange = viewModel.updateDate()
-                            delay(1000) // Visual feedback duration
+                            delay(1000)
                             isRefreshing = false
                             if (didChange) {
                                 Toast.makeText(context, "Data updated for the new day!", Toast.LENGTH_SHORT).show()
@@ -596,7 +590,6 @@ fun ChecklistPage(
                 }
             }
 
-            // New Custom Tab Row matching Tab buttons.png
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -604,7 +597,6 @@ fun ChecklistPage(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Breakfast Tab
                 CustomTabButton(
                     text = "Breakfast",
                     isSelected = selectedTabIndex == 0,
@@ -614,7 +606,6 @@ fun ChecklistPage(
                     textColor = Color(0xFF1976D2),
                     modifier = Modifier.weight(1f)
                 )
-                // Lunch Tab
                 CustomTabButton(
                     text = "Lunch",
                     isSelected = selectedTabIndex == 1,
@@ -624,7 +615,6 @@ fun ChecklistPage(
                     textColor = Color(0xFF388E3C),
                     modifier = Modifier.weight(1f)
                 )
-                // Dinner Tab
                 CustomTabButton(
                     text = "Dinner",
                     isSelected = selectedTabIndex == 2,
@@ -696,7 +686,6 @@ fun CustomTabButton(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Red/Green Indicator outside the button
         Box(
             modifier = Modifier
                 .size(8.dp)
@@ -837,101 +826,187 @@ fun OptionButton(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonthlyStatusPage(viewModel: MedicineViewModel, onBack: () -> Unit) {
+fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, onBack: () -> Unit) {
+    var selectedMonthIndex by remember { mutableIntStateOf(0) } 
     val currentMonthRecords by viewModel.getRecordsForMonth(0).collectAsState(initial = emptyList())
     val previousMonthRecords by viewModel.getRecordsForMonth(-1).collectAsState(initial = emptyList())
 
-    val currentMonthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date())
-    val previousMonthName = remember {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.MONTH, -1)
-        SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cal.time)
-    }
+    val records = if (selectedMonthIndex == 0) currentMonthRecords else previousMonthRecords
+    
+    val calendar = Calendar.getInstance()
+    if (selectedMonthIndex == 1) calendar.add(Calendar.MONTH, -1)
+    val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
-                title = { Text("Monthly Status", fontWeight = FontWeight.Bold, color = TextHeader) },
+            CenterAlignedTopAppBar(
+                title = { Text("Monthly Status Report", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
-        }
+        },
+        containerColor = AppBackground
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            item {
-                StatusMonthSection(title = currentMonthName, records = currentMonthRecords)
+            Row(modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                StatusTab(
+                    text = "Current Month",
+                    isSelected = selectedMonthIndex == 0,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedMonthIndex = 0 }
+                )
+                StatusTab(
+                    text = "Previous Month",
+                    isSelected = selectedMonthIndex == 1,
+                    modifier = Modifier.weight(1f),
+                    onClick = { selectedMonthIndex = 1 }
+                )
             }
-            item {
-                StatusMonthSection(title = previousMonthName, records = previousMonthRecords)
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = monthName,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = TextHeader,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().weight(1f),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().background(Color(0xFFF8FBFF)).padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TableHeaderCell("Date", Modifier.weight(1.2f))
+                        TableHeaderCell("Breakfast", Modifier.weight(1f))
+                        TableHeaderCell("Lunch", Modifier.weight(1f))
+                        TableHeaderCell("Dinner", Modifier.weight(1f))
+                    }
+                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), thickness = 1.dp)
+
+                    val dates = remember(selectedMonthIndex) { getDatesForMonth(selectedMonthIndex) }
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(dates) { date ->
+                            StatusRow(date, records, medicines)
+                            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.2f), thickness = 0.5.dp)
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun StatusMonthSection(title: String, records: List<MedicineRecord>) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+fun StatusTab(text: String, isSelected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    Box(
+        modifier = modifier.fillMaxHeight().clickable { onClick() },
+        contentAlignment = Alignment.Center
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = BluePrimary
+                text = text,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) BluePrimary else TextSecondary,
+                fontSize = 16.sp
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            if (records.isEmpty()) {
-                Text("No data available for this month.", color = TextSecondary)
-            } else {
-                val groupedByTime = records.groupBy { it.timeSlot }
-                listOf("Breakfast", "Lunch", "Dinner").forEach { slot ->
-                    val slotRecords = groupedByTime[slot] ?: emptyList()
-                    val takenCount = slotRecords.count { it.wasTaken }
-                    val totalCount = slotRecords.size
-                    
-                    if (totalCount > 0) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(text = slot, fontWeight = FontWeight.Medium, color = TextPrimary)
-                            Text(
-                                text = "$takenCount / $totalCount taken",
-                                color = if (takenCount == totalCount) Color(0xFF388E3C) else BluePrimary
-                            )
-                        }
-                        LinearProgressIndicator(
-                            progress = { takenCount.toFloat() / totalCount.toFloat() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(CircleShape),
-                            color = if (takenCount == totalCount) Color(0xFF388E3C) else BluePrimary,
-                            trackColor = Color(0xFFE3F2FD)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
+            if (isSelected) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(modifier = Modifier.width(100.dp).height(3.dp).background(BluePrimary, RoundedCornerShape(2.dp)))
             }
         }
     }
+}
+
+@Composable
+fun TableHeaderCell(text: String, modifier: Modifier) {
+    Text(
+        text = text,
+        modifier = modifier,
+        textAlign = TextAlign.Center,
+        fontWeight = FontWeight.Bold,
+        color = TextSecondary,
+        fontSize = 14.sp
+    )
+}
+
+@Composable
+fun StatusRow(date: Date, records: List<MedicineRecord>, medicines: List<Medicine>) {
+    val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
+    val displayDate = SimpleDateFormat("d MMM", Locale.getDefault()).format(date)
+    
+    val rowRecords = records.filter { it.date == dateStr }
+    
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(displayDate, modifier = Modifier.weight(1.2f), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
+        StatusCell(Modifier.weight(1f), getStatus("Breakfast", date, rowRecords, medicines))
+        StatusCell(Modifier.weight(1f), getStatus("Lunch", date, rowRecords, medicines))
+        StatusCell(Modifier.weight(1f), getStatus("Dinner", date, rowRecords, medicines))
+    }
+}
+
+@Composable
+fun StatusCell(modifier: Modifier, status: StatusType) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        when (status) {
+            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = "Taken", tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
+            StatusType.Missed -> Icon(Icons.Default.DisabledByDefault, contentDescription = "Missed", tint = Color(0xFFD32F2F), modifier = Modifier.size(24.dp))
+            StatusType.None -> Text("—", color = Color.LightGray, fontWeight = FontWeight.Bold)
+            StatusType.Future -> { /* Empty */ }
+        }
+    }
+}
+
+enum class StatusType { Taken, Missed, None, Future }
+
+fun getStatus(slot: String, date: Date, records: List<MedicineRecord>, medicines: List<Medicine>): StatusType {
+    val today = Calendar.getInstance()
+    today.set(Calendar.HOUR_OF_DAY, 0)
+    today.set(Calendar.MINUTE, 0)
+    today.set(Calendar.SECOND, 0)
+    today.set(Calendar.MILLISECOND, 0)
+
+    if (date.after(today.time)) return StatusType.Future
+
+    val isScheduled = medicines.any { it.times.contains(slot) }
+    if (!isScheduled) return StatusType.None
+
+    val record = records.find { it.timeSlot == slot }
+    return if (record != null) StatusType.Taken else StatusType.Missed
+}
+
+fun getDatesForMonth(monthOffset: Int): List<Date> {
+    val dates = mutableListOf<Date>()
+    val cal = Calendar.getInstance()
+    cal.add(Calendar.MONTH, monthOffset)
+    cal.set(Calendar.DAY_OF_MONTH, 1)
+    val month = cal.get(Calendar.MONTH)
+    while (cal.get(Calendar.MONTH) == month) {
+        dates.add(cal.time)
+        cal.add(Calendar.DAY_OF_MONTH, 1)
+    }
+    return dates.reversed()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -959,7 +1034,7 @@ fun AboutPage(onBack: () -> Unit) {
             Text("Simple Medicine Checklist", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = BluePrimary)
             Text("Version 1.0.0", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Designed to help you track your daily medication.", textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 32.dp))
+            Text("Designed to help you track your daily medication.", textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 32.dp))
         }
     }
 }
@@ -1097,7 +1172,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
             text = message,
             style = MaterialTheme.typography.bodyLarge,
             color = TextSecondary,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -1131,7 +1206,6 @@ fun AddMedicineDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Header Icon & Title
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Surface(
                         modifier = Modifier.size(64.dp),
@@ -1154,7 +1228,6 @@ fun AddMedicineDialog(
                     )
                 }
 
-                // Input Fields
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = name,
@@ -1185,7 +1258,6 @@ fun AddMedicineDialog(
                     )
                 }
 
-                // Schedule Selector (Mini Tab Style)
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "Schedule",
@@ -1220,7 +1292,7 @@ fun AddMedicineDialog(
                             ) {
                                 Text(
                                     text = time,
-                                    color = if (isSelected) Color.White else chipColor.copy(alpha = 1f).compositeOver(Color.Black).copy(alpha = 0.8f),
+                                    color = if (isSelected) Color.White else chipColor.copy(alpha = 0.8f),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 12.sp
                                 )
@@ -1229,7 +1301,6 @@ fun AddMedicineDialog(
                     }
                 }
 
-                // Action Buttons
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = { onConfirm(name, tablets, selectedTimes.joinToString(", ")) },
@@ -1255,8 +1326,4 @@ fun AddMedicineDialog(
             }
         }
     }
-}
-
-private fun Color.compositeOver(background: Color): Color {
-    return background // Simplified for helper
 }
