@@ -5,9 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [Medicine::class, MedicineRecord::class], version = 5, exportSchema = false)
+@Database(entities = [Task::class, TaskRecord::class], version = 6, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun medicineDao(): MedicineDao
+    abstract fun taskDao(): TaskDao
 
     companion object {
         @Volatile
@@ -18,7 +18,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "medicine_database"
+                    "task_database"
                 )
                 .fallbackToDestructiveMigration()
                 .build()

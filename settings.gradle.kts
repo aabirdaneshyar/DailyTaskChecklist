@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Simple Medicine Checklist"
+rootProject.name = "Daily Tasks Checklist"
 include(":app")

@@ -53,7 +53,7 @@ import java.util.*
 
 enum class Screen {
     Splash,
-    AddMedicine,
+    AddTask,
     Checklist,
     Options,
     MonthlyStatus,
@@ -70,17 +70,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SimpleMedicineChecklistTheme {
+            DailyTasksChecklistTheme {
                 val context = LocalContext.current
                 val database = AppDatabase.getDatabase(context)
-                val viewModel: MedicineViewModel = viewModel(
-                    factory = MedicineViewModelFactory(database.medicineDao())
+                val viewModel: TaskViewModel = viewModel(
+                    factory = TaskViewModelFactory(database.taskDao())
                 )
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MedicineAppContainer(viewModel)
+                    TaskAppContainer(viewModel)
                 }
             }
         }
@@ -88,8 +88,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MedicineAppContainer(viewModel: MedicineViewModel) {
-    val medicines by viewModel.medicines.collectAsState()
+fun TaskAppContainer(viewModel: TaskViewModel) {
+    val tasks by viewModel.tasks.collectAsState()
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
     var isFromOptions by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -109,13 +109,13 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
     }
 
     LaunchedEffect(Unit) {
-        val sharedPref = context.getSharedPreferences("medicine_prefs", Context.MODE_PRIVATE)
+        val sharedPref = context.getSharedPreferences("task_prefs", Context.MODE_PRIVATE)
         while(true) {
             val currentDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val lastResetDate = sharedPref.getString("last_reset_date", "")
             
             if (currentDateStr != lastResetDate) {
-                viewModel.resetAllMedicines()
+                viewModel.resetAllTasks()
                 viewModel.pruneOldRecords()
                 sharedPref.edit { putString("last_reset_date", currentDateStr) }
             }
@@ -126,30 +126,30 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
 
     LaunchedEffect(Unit) {
         delay(2500) 
-        currentScreen = if (medicines.isNotEmpty()) {
+        currentScreen = if (tasks.isNotEmpty()) {
             Screen.Checklist
         } else {
             isFromOptions = false
-            Screen.AddMedicine
+            Screen.AddTask
         }
     }
 
-    LaunchedEffect(medicines) {
+    LaunchedEffect(tasks) {
         if (currentScreen != Screen.Splash) {
-            if (medicines.isEmpty() && currentScreen == Screen.Checklist) {
+            if (tasks.isEmpty() && currentScreen == Screen.Checklist) {
                 isFromOptions = false
-                currentScreen = Screen.AddMedicine
+                currentScreen = Screen.AddTask
             }
         }
     }
 
     BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
-        if (medicines.isEmpty() && currentScreen == Screen.AddMedicine) {
+        if (tasks.isEmpty() && currentScreen == Screen.AddTask) {
             activity?.finish()
         } else {
             when (currentScreen) {
                 Screen.Options -> currentScreen = Screen.Checklist
-                Screen.AddMedicine -> {
+                Screen.AddTask -> {
                     if (isFromOptions) {
                         currentScreen = Screen.Options
                         isFromOptions = false
@@ -167,10 +167,10 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
 
     when (currentScreen) {
         Screen.Splash -> SplashScreen()
-        Screen.AddMedicine -> {
-            AddMedicinePage(
+        Screen.AddTask -> {
+            AddTaskPage(
                 viewModel = viewModel,
-                medicines = medicines,
+                tasks = tasks,
                 showBackIcon = isFromOptions,
                 onBack = { 
                     currentScreen = Screen.Options
@@ -189,7 +189,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         Screen.Checklist -> {
             ChecklistPage(
                 viewModel = viewModel,
-                medicines = medicines,
+                tasks = tasks,
                 onOpenOptions = { currentScreen = Screen.Options }
             )
         }
@@ -197,7 +197,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
             OptionsPage(
                 onNavigateToManage = { 
                     isFromOptions = true
-                    currentScreen = Screen.AddMedicine 
+                    currentScreen = Screen.AddTask 
                 },
                 onNavigateToMonthlyStatus = { currentScreen = Screen.MonthlyStatus },
                 onNavigateToAbout = { currentScreen = Screen.About },
@@ -207,7 +207,7 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         Screen.MonthlyStatus -> {
             MonthlyStatusPage(
                 viewModel = viewModel,
-                medicines = medicines,
+                tasks = tasks,
                 onBack = { currentScreen = Screen.Options }
             )
         }
@@ -223,11 +223,11 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         Screen.AboutApp -> {
             SubAboutPage(title = "About the App", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Medicine Checklist is a simple and easy-to-use application designed to help users keep track of their daily medicines in a checklist format.\n\n" +
-                           "The app allows users to add medicines along with the number of tablets and the time of day they need to be taken, such as breakfast, lunch, or dinner. Each day, users can mark their medicines as taken and save their daily status.\n\n" +
-                           "The main goal of this app is to provide a clear and organized way to track daily medicine intake without complexity. All data is stored locally on your device, ensuring privacy and offline usage.\n\n" +
-                           "Daily Medicine Checklist is intended only as a tracking and checklist tool. It does not provide medical advice, reminders, or treatment recommendations. Users should always follow their doctor’s or healthcare professional’s instructions for medication usage.\n\n" +
-                           "This app is ideal for users who prefer a straightforward, no-frills approach to managing their daily medicine routine.",
+                    text = "Daily Tasks Checklist is a simple and easy-to-use application designed to help users keep track of their daily tasks in a checklist format.\n\n" +
+                           "The app allows users to add tasks along with relevant details and the time of day they need to be completed, such as breakfast, lunch, or dinner. Each day, users can mark their tasks as completed and save their daily status.\n\n" +
+                           "The main goal of this app is to provide a clear and organized way to track daily tasks without complexity. All data is stored locally on your device, ensuring privacy and offline usage.\n\n" +
+                           "Daily Tasks Checklist is intended only as a tracking and checklist tool. All data is stored locally on your device, ensuring privacy and offline usage.\n\n" +
+                           "This app is ideal for users who prefer a straightforward, no-frills approach to managing their daily routine.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -236,22 +236,22 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
         Screen.Version -> {
             SubAboutPage(title = "Version", onBack = { currentScreen = Screen.About }) {
-                Text("App Name: Daily Medicine Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("App Name: Daily Tasks Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Text("Version: 1.0.0", fontSize = 16.sp)
             }
         }
         Screen.PrivacyPolicy -> {
             SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Medicine Checklist respects your privacy and is designed to protect your personal information.\n\n" +
+                    text = "Daily Tasks Checklist respects your privacy and is designed to protect your personal information.\n\n" +
                            "Data Collection\n" +
-                           "Daily Medicine Checklist does not collect, store, or share any personal or sensitive user data. The app does not require user registration, login, or internet access to function.\n\n" +
+                           "Daily Tasks Checklist does not collect, store, or share any personal or sensitive user data. The app does not require user registration, login, or internet access to function.\n\n" +
                            "Data Storage\n" +
-                           "All information entered into the app, such as medicine names, number of tablets, and daily checklist status, is stored locally on your device only. This data is not transmitted to any external servers or third parties.\n\n" +
+                           "All information entered into the app, such as task names and daily checklist status, is stored locally on your device only. This data is not transmitted to any external servers or third parties.\n\n" +
                            "Data Sharing\n" +
                            "The app does not share user data with any third parties. No data is sold, rented, or distributed in any form.\n\n" +
                            "Advertisements\n" +
-                           "Currently, Daily Medicine Checklist does not display advertisements. If advertisements are added in the future, they may be provided by trusted third-party services and will comply with applicable privacy policies and regulations.\n\n" +
+                           "Currently, Daily Tasks Checklist does not display advertisements. If advertisements are added in the future, they may be provided by trusted third-party services and will comply with applicable privacy policies and regulations.\n\n" +
                            "Data Security\n" +
                            "Since all data is stored locally on the user’s device, users are responsible for maintaining the security of their device. Uninstalling the app will permanently remove all stored data.\n\n" +
                            "Changes to This Policy\n" +
@@ -267,29 +267,26 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         Screen.TermsDisclaimer -> {
             SubAboutPage(title = "Terms & Disclaimer", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Medicine Checklist is provided as a simple medicine tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\n" +
+                    text = "Daily Tasks Checklist is provided as a simple task tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\n" +
                            "Intended Use\n" +
-                           "Daily Medicine Checklist is intended solely as a tool to help users track and mark their daily medicine intake in a checklist format. It is not a medical device and is not intended to diagnose, treat, cure, or prevent any disease.\n\n" +
-                           "No Medical Advice\n" +
-                           "This app does not provide medical advice, diagnosis, treatment, or professional healthcare guidance. All information entered into the app is provided by the user for personal reference only. Users must always follow the advice and instructions given by their doctor or healthcare professional.\n\n" +
+                           "Daily Tasks Checklist is intended solely as a tool to help users track and mark their daily tasks in a checklist format.\n\n" +
                            "User Responsibility\n" +
                            "Users are fully responsible for:\n" +
-                           "• Entering correct medicine names, quantities, and schedules\n" +
-                           "• Taking medicines as prescribed by their healthcare provider\n" +
-                           "• Verifying that medicines are taken correctly and on time\n\n" +
-                           "The app should not be relied upon as the sole method for managing medication routines.\n\n" +
+                           "• Entering correct task names and schedules\n" +
+                           "• Verifying that tasks are completed correctly and on time\n\n" +
+                           "The app should not be relied upon as the sole method for managing routines.\n\n" +
                            "App Availability & Bugs\n" +
                            "The app is provided on an “as-is” and “as-available” basis. While reasonable efforts are made to ensure proper functioning, the developer does not guarantee that the app will be error-free, uninterrupted, or free from bugs. The app may occasionally fail due to software issues, device limitations, operating system updates, or other technical reasons.\n\n" +
                            "Limitation of Liability\n" +
-                           "To the fullest extent permitted by law, the developer shall not be held liable for any direct, indirect, incidental, or consequential damages, including but not limited to health issues, missed medications, data loss, or other losses arising from the use of or inability to use this app.\n\n" +
+                           "To the fullest extent permitted by law, the developer shall not be held liable for any direct, indirect, incidental, or consequential damages, including but not limited to missed tasks, data loss, or other losses arising from the use of or inability to use this app.\n\n" +
                            "Data & Storage\n" +
-                           "All data entered into Daily Medicine Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.\n\n" +
+                           "All data entered into Daily Tasks Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.\n\n" +
                            "Data Deletion & Storage Responsibility\n" +
                            "Deleting app data, clearing storage, uninstalling the app, using storage-cleaning tools, or performing device resets will permanently remove all stored information. The developer is not responsible for any data loss resulting from user actions, device settings, system updates, or storage management tools.\n\n" +
                            "Changes to the App\n" +
                            "The developer reserves the right to modify, update, or discontinue any part of the app at any time without prior notice.\n\n" +
                            "Acceptance of Terms\n" +
-                           "By installing or using Daily Medicine Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
+                           "By installing or using Daily Tasks Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -353,7 +350,7 @@ fun SplashScreen() {
             }
             Spacer(modifier = Modifier.height(48.dp))
             Text(
-                text = "Daily Medicine Checklist",
+                text = "Daily Tasks Checklist",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = BluePrimary,
@@ -363,7 +360,7 @@ fun SplashScreen() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Simple daily medicine tracking",
+                text = "Simple daily task tracking",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = BluePrimary.copy(alpha = 0.8f),
@@ -391,20 +388,20 @@ fun SplashScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddMedicinePage(
-    viewModel: MedicineViewModel,
-    medicines: List<Medicine>,
+fun AddTaskPage(
+    viewModel: TaskViewModel,
+    tasks: List<Task>,
     showBackIcon: Boolean,
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
-    var medicineToDelete by remember { mutableStateOf<Medicine?>(null) }
+    var taskToDelete by remember { mutableStateOf<Task?>(null) }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Manage Medicines", fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text("Manage Tasks", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     if (showBackIcon) {
                         IconButton(onClick = onBack) {
@@ -415,12 +412,12 @@ fun AddMedicinePage(
                 actions = {
                     TextButton(
                         onClick = onDone,
-                        enabled = medicines.isNotEmpty()
+                        enabled = tasks.isNotEmpty()
                     ) {
                         Text(
                             text = "Done",
                             fontWeight = FontWeight.Bold,
-                            color = if (medicines.isNotEmpty()) BluePrimary else Color.Gray,
+                            color = if (tasks.isNotEmpty()) BluePrimary else Color.Gray,
                             fontSize = 18.sp
                         )
                     }
@@ -431,7 +428,7 @@ fun AddMedicinePage(
             ExtendedFloatingActionButton(
                 onClick = { showAddDialog = true },
                 icon = { Icon(Icons.Default.Add, "Add") },
-                text = { Text("Add Medicine") },
+                text = { Text("Add Task") },
                 containerColor = BluePrimary,
                 contentColor = Color.White
             )
@@ -442,10 +439,10 @@ fun AddMedicinePage(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            if (medicines.isEmpty()) {
+            if (tasks.isEmpty()) {
                 EmptyStateView(
                     icon = Icons.Default.MedicalServices,
-                    message = "Your medicine list is empty.\nTap the button below to add your first medicine."
+                    message = "Your task list is empty.\nTap the button below to add your first task."
                 )
             } else {
                 LazyColumn(
@@ -453,10 +450,10 @@ fun AddMedicinePage(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(medicines) { medicine ->
-                        MedicineEditCard(
-                            medicine = medicine,
-                            onDelete = { medicineToDelete = medicine }
+                    items(tasks) { task ->
+                        TaskEditCard(
+                            task = task,
+                            onDelete = { taskToDelete = task }
                         )
                     }
                 }
@@ -464,25 +461,25 @@ fun AddMedicinePage(
         }
 
         if (showAddDialog) {
-            AddMedicineDialog(
+            AddTaskDialog(
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name, tablets, times ->
-                    viewModel.addMedicine(name, tablets, times)
+                    viewModel.addTask(name, tablets, times)
                     showAddDialog = false
                 }
             )
         }
 
-        if (medicineToDelete != null) {
+        if (taskToDelete != null) {
             AlertDialog(
-                onDismissRequest = { medicineToDelete = null },
-                title = { Text("Delete Medicine", color = TextHeader) },
-                text = { Text("Are you sure you want to delete ${medicineToDelete?.name}?", color = TextPrimary) },
+                onDismissRequest = { taskToDelete = null },
+                title = { Text("Delete Task", color = TextHeader) },
+                text = { Text("Are you sure you want to delete ${taskToDelete?.name}?", color = TextPrimary) },
                 confirmButton = {
                     Button(
                         onClick = {
-                            medicineToDelete?.let { viewModel.deleteMedicine(it) }
-                            medicineToDelete = null
+                            taskToDelete?.let { viewModel.deleteTask(it) }
+                            taskToDelete = null
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
@@ -490,7 +487,7 @@ fun AddMedicinePage(
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { medicineToDelete = null }) {
+                    TextButton(onClick = { taskToDelete = null }) {
                         Text("Cancel", color = TextSecondary)
                     }
                 }
@@ -502,8 +499,8 @@ fun AddMedicinePage(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChecklistPage(
-    viewModel: MedicineViewModel,
-    medicines: List<Medicine>,
+    viewModel: TaskViewModel,
+    tasks: List<Task>,
     onOpenOptions: () -> Unit
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -520,17 +517,17 @@ fun ChecklistPage(
     val lunchCompleted = todayRecords.any { it.timeSlot == "Lunch" }
     val dinnerCompleted = todayRecords.any { it.timeSlot == "Dinner" }
 
-    val currentTabMedicines = remember(medicines, todayRecords, selectedTabIndex) {
+    val currentTabTasks = remember(tasks, todayRecords, selectedTabIndex) {
         if (isSaved) {
-            val savedNames = todayRecords.filter { it.timeSlot == currentTabTitle }.map { it.medicineName }
-            medicines.filter { savedNames.contains(it.name) }
+            val savedNames = todayRecords.filter { it.timeSlot == currentTabTitle }.map { it.taskName }
+            tasks.filter { savedNames.contains(it.name) }
         } else {
-            medicines.filter { it.times.contains(currentTabTitle) }
+            tasks.filter { it.times.contains(currentTabTitle) }
         }
     }
 
-    val allTaken = remember(currentTabMedicines, selectedTabIndex) {
-        currentTabMedicines.isNotEmpty() && currentTabMedicines.all {
+    val allTaken = remember(currentTabTasks, selectedTabIndex) {
+        currentTabTasks.isNotEmpty() && currentTabTasks.all {
             when (currentTabTitle) {
                 "Breakfast" -> it.isTakenBreakfast
                 "Lunch" -> it.isTakenLunch
@@ -617,13 +614,13 @@ fun ChecklistPage(
                 Button(
                     onClick = { 
                         if (!allTaken) {
-                            Toast.makeText(context, "Please check all medicines first", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Please check all tasks first", Toast.LENGTH_SHORT).show()
                         } else {
-                            viewModel.saveDailyRecords(currentTabMedicines, currentTabTitle)
+                            viewModel.saveDailyRecords(currentTabTasks, currentTabTitle)
                             Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    enabled = !isSaved && currentTabMedicines.isNotEmpty(),
+                    enabled = !isSaved && currentTabTasks.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -639,7 +636,7 @@ fun ChecklistPage(
                     Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (isSaved) "$currentTabTitle Records Saved" else "Save $currentTabTitle Medicines",
+                        text = if (isSaved) "$currentTabTitle Records Saved" else "Save $currentTabTitle Tasks",
                         fontSize = 18.sp, 
                         fontWeight = FontWeight.Bold
                     )
@@ -656,7 +653,7 @@ fun ChecklistPage(
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Column {
                     Text(
-                        text = "Daily Medicine Checklist for",
+                        text = "Daily Tasks Checklist for",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp
@@ -713,18 +710,18 @@ fun ChecklistPage(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Total number of medicines : ${currentTabMedicines.size}",
+                text = "Total number of tasks : ${currentTabTasks.size}",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp),
                 color = TextHeader
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (currentTabMedicines.isEmpty()) {
+            if (currentTabTasks.isEmpty()) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     EmptyStateView(
                         icon = Icons.Default.DoneAll,
-                        message = "No medicines scheduled for $currentTabTitle."
+                        message = "No tasks scheduled for $currentTabTitle."
                     )
                 }
             } else {
@@ -733,21 +730,21 @@ fun ChecklistPage(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
-                    items(currentTabMedicines) { medicine ->
+                    items(currentTabTasks) { task ->
                         val isTaken = if (isSaved) {
                             true 
                         } else {
                             when (currentTabTitle) {
-                                "Breakfast" -> medicine.isTakenBreakfast
-                                "Lunch" -> medicine.isTakenLunch
-                                "Dinner" -> medicine.isTakenDinner
+                                "Breakfast" -> task.isTakenBreakfast
+                                "Lunch" -> task.isTakenLunch
+                                "Dinner" -> task.isTakenDinner
                                 else -> false
                             }
                         }
-                        MedicineChecklistCard(
-                            medicine = medicine,
+                        TaskChecklistCard(
+                            task = task,
                             isTaken = isTaken,
-                            onToggle = { if (!isSaved) viewModel.toggleMedicineTaken(medicine, currentTabTitle) }
+                            onToggle = { if (!isSaved) viewModel.toggleTaskTaken(task, currentTabTitle) }
                         )
                     }
                 }
@@ -848,7 +845,7 @@ fun OptionsPage(
                 onClick = onNavigateToMonthlyStatus
             )
             OptionButton(
-                text = "Manage Medicines",
+                text = "Manage Tasks",
                 icon = Icons.Default.AddCircle,
                 color = BluePrimary,
                 onClick = onNavigateToManage
@@ -910,7 +907,7 @@ fun OptionButton(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, onBack: () -> Unit) {
+fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () -> Unit) {
     var selectedMonthIndex by remember { mutableIntStateOf(0) } 
     val currentMonthRecords by viewModel.getRecordsForMonth(0).collectAsState(initial = emptyList())
     val previousMonthRecords by viewModel.getRecordsForMonth(-1).collectAsState(initial = emptyList())
@@ -1001,7 +998,7 @@ fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, o
                     }
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(dates) { date ->
-                            StatusRow(date, records, medicines)
+                            StatusRow(date, records, tasks)
                             HorizontalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
                         }
                     }
@@ -1074,7 +1071,7 @@ fun formatReportDate(date: Date): String {
 }
 
 @Composable
-fun StatusRow(date: Date, records: List<MedicineRecord>, medicines: List<Medicine>) {
+fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
     val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
     val displayDate = formatReportDate(date)
     
@@ -1086,11 +1083,11 @@ fun StatusRow(date: Date, records: List<MedicineRecord>, medicines: List<Medicin
     ) {
         Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Breakfast", date, rowRecords, medicines))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Breakfast", date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Lunch", date, rowRecords, medicines))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Lunch", date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Dinner", date, rowRecords, medicines))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Dinner", date, rowRecords, tasks))
     }
 }
 
@@ -1108,7 +1105,7 @@ fun StatusCell(modifier: Modifier, status: StatusType) {
 
 enum class StatusType { Taken, Missed, None, Future }
 
-fun getStatus(slot: String, date: Date, records: List<MedicineRecord>, medicines: List<Medicine>): StatusType {
+fun getStatus(slot: String, date: Date, records: List<TaskRecord>, tasks: List<Task>): StatusType {
     val today = Calendar.getInstance()
     today.set(Calendar.HOUR_OF_DAY, 0)
     today.set(Calendar.MINUTE, 0)
@@ -1121,7 +1118,7 @@ fun getStatus(slot: String, date: Date, records: List<MedicineRecord>, medicines
     if (record != null) return StatusType.Taken
 
     return if (date.before(today.time)) {
-        val isScheduled = medicines.any { it.times.contains(slot) }
+        val isScheduled = tasks.any { it.times.contains(slot) }
         if (isScheduled) StatusType.None else StatusType.Future
     } else {
         // Today
@@ -1247,7 +1244,7 @@ fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnS
 }
 
 @Composable
-fun MedicineEditCard(medicine: Medicine, onDelete: () -> Unit) {
+fun TaskEditCard(task: Task, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -1278,14 +1275,13 @@ fun MedicineEditCard(medicine: Medicine, onDelete: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = medicine.name,
+                    text = task.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
-                val tabletText = if (medicine.numberOfTablets == "1") "tablet" else "tablets"
                 Text(
-                    text = "${medicine.numberOfTablets} $tabletText • ${medicine.times}",
+                    text = "${task.numberOfTablets} • ${task.times}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -1303,7 +1299,7 @@ fun MedicineEditCard(medicine: Medicine, onDelete: () -> Unit) {
 }
 
 @Composable
-fun MedicineChecklistCard(medicine: Medicine, isTaken: Boolean, onToggle: () -> Unit) {
+fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isTaken) 
             Color(0xFFEEF6FB) 
@@ -1342,15 +1338,14 @@ fun MedicineChecklistCard(medicine: Medicine, isTaken: Boolean, onToggle: () -> 
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = medicine.name,
+                    text = task.name,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = if (isTaken) TextSecondary else TextPrimary
                     )
                 )
-                val tabletText = if (medicine.numberOfTablets == "1") "tablet" else "tablets"
                 Text(
-                    text = "${medicine.numberOfTablets} $tabletText",
+                    text = task.numberOfTablets,
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -1385,7 +1380,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
 }
 
 @Composable
-fun AddMedicineDialog(
+fun AddTaskDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, String) -> Unit
 ) {
@@ -1420,7 +1415,7 @@ fun AddMedicineDialog(
                         color = BluePrimary.copy(alpha = 0.1f)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.MedicalServices,
+                            imageVector = Icons.Default.AddCircle,
                             contentDescription = null,
                             modifier = Modifier.padding(16.dp),
                             tint = BluePrimary
@@ -1428,7 +1423,7 @@ fun AddMedicineDialog(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "New Medicine",
+                        text = "New Task",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = TextHeader
@@ -1439,8 +1434,8 @@ fun AddMedicineDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Medicine Name") },
-                        placeholder = { Text("e.g. Paracetamol") },
+                        label = { Text("Task Name") },
+                        placeholder = { Text("e.g. Drink Water") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1452,11 +1447,10 @@ fun AddMedicineDialog(
                     OutlinedTextField(
                         value = tablets,
                         onValueChange = { tablets = it },
-                        label = { Text("Number of tablets") },
-                        placeholder = { Text("e.g. 1") },
+                        label = { Text("Details") },
+                        placeholder = { Text("e.g. 500ml") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BluePrimary,
                             unfocusedBorderColor = Color.LightGray,

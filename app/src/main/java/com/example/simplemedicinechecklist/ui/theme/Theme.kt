@@ -39,9 +39,9 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun SimpleMedicineChecklistTheme(
+fun DailyTasksChecklistTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Disable dynamic color to ensure consistent medical theme
+    // Disable dynamic color to ensure consistent theme
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

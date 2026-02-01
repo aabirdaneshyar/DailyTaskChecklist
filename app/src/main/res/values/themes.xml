@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.SimpleMedicineChecklist" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.DailyTasksChecklist" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
     </style>
 
@@ -11,6 +11,6 @@
         <!-- Use a transparent icon for the system splash to transition seamlessly into the Compose splash -->
         <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <!-- The theme of the activity that will be used after the splash screen -->
-        <item name="postSplashScreenTheme">@style/Theme.SimpleMedicineChecklist</item>
+        <item name="postSplashScreenTheme">@style/Theme.DailyTasksChecklist</item>
     </style>
 </resources>
