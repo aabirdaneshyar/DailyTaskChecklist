@@ -60,7 +60,11 @@ enum class Screen {
     Checklist,
     Options,
     MonthlyStatus,
-    About
+    About,
+    AboutApp,
+    Version,
+    PrivacyPolicy,
+    TermsDisclaimer
 }
 
 class MainActivity : ComponentActivity() {
@@ -156,6 +160,9 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
                 }
                 Screen.MonthlyStatus -> currentScreen = Screen.Options
                 Screen.About -> currentScreen = Screen.Options
+                Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer -> {
+                    currentScreen = Screen.About
+                }
                 else -> {}
             }
         }
@@ -209,8 +216,33 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
         Screen.About -> {
             AboutPage(
+                onNavigateToAboutApp = { currentScreen = Screen.AboutApp },
+                onNavigateToVersion = { currentScreen = Screen.Version },
+                onNavigateToPrivacy = { currentScreen = Screen.PrivacyPolicy },
+                onNavigateToTerms = { currentScreen = Screen.TermsDisclaimer },
                 onBack = { currentScreen = Screen.Options }
             )
+        }
+        Screen.AboutApp -> {
+            SubAboutPage(title = "About the App", onBack = { currentScreen = Screen.About }) {
+                Text("Daily Medicine Checklist is designed to help you track your daily medication simply and effectively.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+            }
+        }
+        Screen.Version -> {
+            SubAboutPage(title = "Version", onBack = { currentScreen = Screen.About }) {
+                Text("Version 1.0.0", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text("Up to date", color = Color.Gray)
+            }
+        }
+        Screen.PrivacyPolicy -> {
+            SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
+                Text("Your privacy is important to us. All your medicine data is stored locally on your device and is never shared with anyone.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+            }
+        }
+        Screen.TermsDisclaimer -> {
+            SubAboutPage(title = "Terms & Disclaimer", onBack = { currentScreen = Screen.About }) {
+                Text("This app is for tracking purposes only. Always consult with a healthcare professional regarding your medication.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+            }
         }
     }
 }
@@ -758,16 +790,16 @@ fun OptionsPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OptionButton(
+                text = "Monthly Status Report",
+                icon = Icons.Default.CalendarMonth,
+                color = BluePrimary,
+                onClick = onNavigateToMonthlyStatus
+            )
+            OptionButton(
                 text = "Manage Medicines",
                 icon = Icons.Default.AddCircle,
                 color = BluePrimary,
                 onClick = onNavigateToManage
-            )
-            OptionButton(
-                text = "Monthly Status",
-                icon = Icons.Default.CalendarMonth,
-                color = BluePrimary,
-                onClick = onNavigateToMonthlyStatus
             )
             OptionButton(
                 text = "About",
@@ -827,7 +859,7 @@ fun OptionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, onBack: () -> Unit) {
-    var selectedMonthIndex by remember { mutableIntStateOf(0) } 
+    var selectedMonthIndex by remember { mutableIntStateOf(0) }
     val currentMonthRecords by viewModel.getRecordsForMonth(0).collectAsState(initial = emptyList())
     val previousMonthRecords by viewModel.getRecordsForMonth(-1).collectAsState(initial = emptyList())
 
@@ -1015,9 +1047,9 @@ fun StatusCell(modifier: Modifier, status: StatusType) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         when (status) {
             StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = "Taken", tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
-            StatusType.Missed -> Icon(Icons.Default.DisabledByDefault, contentDescription = "Missed", tint = Color(0xFFD32F2F), modifier = Modifier.size(24.dp))
-            StatusType.None -> Text("—", color = Color.LightGray, fontWeight = FontWeight.Bold)
+            StatusType.None -> Text("-", color = Color.LightGray, fontWeight = FontWeight.Bold)
             StatusType.Future -> { /* Empty */ }
+            else -> { /* No Cross used */ }
         }
     }
 }
@@ -1033,11 +1065,16 @@ fun getStatus(slot: String, date: Date, records: List<MedicineRecord>, medicines
 
     if (date.after(today.time)) return StatusType.Future
 
-    val isScheduled = medicines.any { it.times.contains(slot) }
-    if (!isScheduled) return StatusType.None
-
     val record = records.find { it.timeSlot == slot }
-    return if (record != null) StatusType.Taken else StatusType.Missed
+    if (record != null) return StatusType.Taken
+
+    return if (date.before(today.time)) {
+        val isScheduled = medicines.any { it.times.contains(slot) }
+        if (isScheduled) StatusType.None else StatusType.Future
+    } else {
+        // Today
+        StatusType.Future
+    }
 }
 
 fun getDatesForMonth(monthOffset: Int): List<Date> {
@@ -1060,7 +1097,13 @@ fun getDatesForMonth(monthOffset: Int): List<Date> {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutPage(onBack: () -> Unit) {
+fun AboutPage(
+    onNavigateToAboutApp: () -> Unit,
+    onNavigateToVersion: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToTerms: () -> Unit,
+    onBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             LargeTopAppBar(
@@ -1076,14 +1119,76 @@ fun AboutPage(onBack: () -> Unit) {
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AboutOptionItem(text = "About the App", onClick = onNavigateToAboutApp)
+            AboutOptionItem(text = "Version", onClick = onNavigateToVersion)
+            AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToPrivacy)
+            AboutOptionItem(text = "Terms & Disclaimer", onClick = onNavigateToTerms)
+        }
+    }
+}
+
+@Composable
+fun AboutOptionItem(text: String, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = Color.LightGray
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(title, fontWeight = FontWeight.Bold, color = TextHeader) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Simple Medicine Checklist", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = BluePrimary)
-            Text("Version 1.0.0", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Designed to help you track your daily medication.", textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 32.dp))
+            content()
         }
     }
 }
