@@ -9,10 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -225,23 +222,78 @@ fun MedicineAppContainer(viewModel: MedicineViewModel) {
         }
         Screen.AboutApp -> {
             SubAboutPage(title = "About the App", onBack = { currentScreen = Screen.About }) {
-                Text("Daily Medicine Checklist is designed to help you track your daily medication simply and effectively.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                Text(
+                    text = "Daily Medicine Checklist is a simple and easy-to-use application designed to help users keep track of their daily medicines in a checklist format.\n\n" +
+                           "The app allows users to add medicines along with the number of tablets and the time of day they need to be taken, such as breakfast, lunch, or dinner. Each day, users can mark their medicines as taken and save their daily status.\n\n" +
+                           "The main goal of this app is to provide a clear and organized way to track daily medicine intake without complexity. All data is stored locally on your device, ensuring privacy and offline usage.\n\n" +
+                           "Daily Medicine Checklist is intended only as a tracking and checklist tool. It does not provide medical advice, reminders, or treatment recommendations. Users should always follow their doctor’s or healthcare professional’s instructions for medication usage.\n\n" +
+                           "This app is ideal for users who prefer a straightforward, no-frills approach to managing their daily medicine routine.",
+                    textAlign = TextAlign.Justify,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
+                )
             }
         }
         Screen.Version -> {
             SubAboutPage(title = "Version", onBack = { currentScreen = Screen.About }) {
-                Text("Version 1.0.0", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Text("Up to date", color = Color.Gray)
+                Text("App Name: Daily Medicine Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("Version: 1.0.0", fontSize = 16.sp)
             }
         }
         Screen.PrivacyPolicy -> {
             SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
-                Text("Your privacy is important to us. All your medicine data is stored locally on your device and is never shared with anyone.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                Text(
+                    text = "Daily Medicine Checklist respects your privacy and is designed to protect your personal information.\n\n" +
+                           "Data Collection\n" +
+                           "Daily Medicine Checklist does not collect, store, or share any personal or sensitive user data. The app does not require user registration, login, or internet access to function.\n\n" +
+                           "Data Storage\n" +
+                           "All information entered into the app, such as medicine names, number of tablets, and daily checklist status, is stored locally on your device only. This data is not transmitted to any external servers or third parties.\n\n" +
+                           "Data Sharing\n" +
+                           "The app does not share user data with any third parties. No data is sold, rented, or distributed in any form.\n\n" +
+                           "Advertisements\n" +
+                           "Currently, Daily Medicine Checklist does not display advertisements. If advertisements are added in the future, they may be provided by trusted third-party services and will comply with applicable privacy policies and regulations.\n\n" +
+                           "Data Security\n" +
+                           "Since all data is stored locally on the user’s device, users are responsible for maintaining the security of their device. Uninstalling the app will permanently remove all stored data.\n\n" +
+                           "Changes to This Policy\n" +
+                           "This Privacy Policy may be updated from time to time. Any changes will be reflected within the app.\n\n" +
+                           "Contact\n" +
+                           "If you have any questions regarding this Privacy Policy, you may contact us through the support information provided in the app.",
+                    textAlign = TextAlign.Justify,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
+                )
             }
         }
         Screen.TermsDisclaimer -> {
             SubAboutPage(title = "Terms & Disclaimer", onBack = { currentScreen = Screen.About }) {
-                Text("This app is for tracking purposes only. Always consult with a healthcare professional regarding your medication.", textAlign = TextAlign.Center, modifier = Modifier.padding(16.dp))
+                Text(
+                    text = "Daily Medicine Checklist is provided as a simple medicine tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\n" +
+                           "Intended Use\n" +
+                           "Daily Medicine Checklist is intended solely as a tool to help users track and mark their daily medicine intake in a checklist format. It is not a medical device and is not intended to diagnose, treat, cure, or prevent any disease.\n\n" +
+                           "No Medical Advice\n" +
+                           "This app does not provide medical advice, diagnosis, treatment, or professional healthcare guidance. All information entered into the app is provided by the user for personal reference only. Users must always follow the advice and instructions given by their doctor or healthcare professional.\n\n" +
+                           "User Responsibility\n" +
+                           "Users are fully responsible for:\n" +
+                           "• Entering correct medicine names, quantities, and schedules\n" +
+                           "• Taking medicines as prescribed by their healthcare provider\n" +
+                           "• Verifying that medicines are taken correctly and on time\n\n" +
+                           "The app should not be relied upon as the sole method for managing medication routines.\n\n" +
+                           "App Availability & Bugs\n" +
+                           "The app is provided on an “as-is” and “as-available” basis. While reasonable efforts are made to ensure proper functioning, the developer does not guarantee that the app will be error-free, uninterrupted, or free from bugs. The app may occasionally fail due to software issues, device limitations, operating system updates, or other technical reasons.\n\n" +
+                           "Limitation of Liability\n" +
+                           "To the fullest extent permitted by law, the developer shall not be held liable for any direct, indirect, incidental, or consequential damages, including but not limited to health issues, missed medications, data loss, or other losses arising from the use of or inability to use this app.\n\n" +
+                           "Data & Storage\n" +
+                           "All data entered into Daily Medicine Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.\n\n" +
+                           "Data Deletion & Storage Responsibility\n" +
+                           "Deleting app data, clearing storage, uninstalling the app, using storage-cleaning tools, or performing device resets will permanently remove all stored information. The developer is not responsible for any data loss resulting from user actions, device settings, system updates, or storage management tools.\n\n" +
+                           "Changes to the App\n" +
+                           "The developer reserves the right to modify, update, or discontinue any part of the app at any time without prior notice.\n\n" +
+                           "Acceptance of Terms\n" +
+                           "By installing or using Daily Medicine Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
+                    textAlign = TextAlign.Justify,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
+                )
             }
         }
     }
@@ -859,7 +911,7 @@ fun OptionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthlyStatusPage(viewModel: MedicineViewModel, medicines: List<Medicine>, onBack: () -> Unit) {
-    var selectedMonthIndex by remember { mutableIntStateOf(0) }
+    var selectedMonthIndex by remember { mutableIntStateOf(0) } 
     val currentMonthRecords by viewModel.getRecordsForMonth(0).collectAsState(initial = emptyList())
     val previousMonthRecords by viewModel.getRecordsForMonth(-1).collectAsState(initial = emptyList())
 
@@ -1184,9 +1236,10 @@ fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnS
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             content()
         }
