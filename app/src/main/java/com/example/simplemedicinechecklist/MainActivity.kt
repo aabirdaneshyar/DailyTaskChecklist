@@ -1499,7 +1499,7 @@ fun AddMedicineDialog(
                             ) {
                                 Text(
                                     text = time,
-                                    color = if (isSelected) Color.White else chipColor.copy(alpha = 0.8f),
+                                    color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.8f),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 12.sp
                                 )
