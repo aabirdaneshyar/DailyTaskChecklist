@@ -61,7 +61,8 @@ enum class Screen {
     AboutApp,
     Version,
     PrivacyPolicy,
-    TermsDisclaimer
+    TermsDisclaimer,
+    ContactSupport
 }
 
 class MainActivity : ComponentActivity() {
@@ -157,7 +158,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                 }
                 Screen.MonthlyStatus -> currentScreen = Screen.Options
                 Screen.About -> currentScreen = Screen.Options
-                Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer -> {
+                Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer, Screen.ContactSupport -> {
                     currentScreen = Screen.About
                 }
                 else -> {}
@@ -217,17 +218,22 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                 onNavigateToVersion = { currentScreen = Screen.Version },
                 onNavigateToPrivacy = { currentScreen = Screen.PrivacyPolicy },
                 onNavigateToTerms = { currentScreen = Screen.TermsDisclaimer },
+                onNavigateToContact = { currentScreen = Screen.ContactSupport },
                 onBack = { currentScreen = Screen.Options }
             )
         }
         Screen.AboutApp -> {
             SubAboutPage(title = "About the App", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Tasks Checklist is a simple and easy-to-use application designed to help users keep track of their daily tasks in a checklist format.\n\n" +
-                           "The app allows users to add tasks along with relevant details and the time of day they need to be completed, such as breakfast, lunch, or dinner. Each day, users can mark their tasks as completed and save their daily status.\n\n" +
-                           "The main goal of this app is to provide a clear and organized way to track daily tasks without complexity. All data is stored locally on your device, ensuring privacy and offline usage.\n\n" +
-                           "Daily Tasks Checklist is intended only as a tracking and checklist tool. All data is stored locally on your device, ensuring privacy and offline usage.\n\n" +
-                           "This app is ideal for users who prefer a straightforward, no-frills approach to managing their daily routine.",
+                    text = "Daily Tasks Checklist is a simple and easy-to-use app designed to help you stay organized and productive every day. It allows you to create, track, and complete your daily tasks with clarity and consistency.\n\n" +
+                           "The app focuses on simplicity — no unnecessary features, no distractions. You can define your tasks, mark them as completed as you progress through the day, and review your daily or monthly completion status to understand your habits better.\n\n" +
+                           "Daily Tasks Checklist is ideal for:\n" +
+                           "• Managing personal daily routines\n" +
+                           "• Tracking work or study-related tasks\n" +
+                           "• Building healthy habits\n" +
+                           "• Ensuring nothing important is forgotten\n\n" +
+                           "All data is stored locally on your device, ensuring privacy and fast access without requiring an internet connection. The app does not collect or share personal data.\n\n" +
+                           "Our goal is to provide a lightweight, reliable checklist experience that helps you focus on what matters most — getting things done, one task at a time.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -243,21 +249,26 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.PrivacyPolicy -> {
             SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Tasks Checklist respects your privacy and is designed to protect your personal information.\n\n" +
-                           "Data Collection\n" +
-                           "Daily Tasks Checklist does not collect, store, or share any personal or sensitive user data. The app does not require user registration, login, or internet access to function.\n\n" +
+                    text = "Last updated: November 24, 2024\n\n" +
+                           "Daily Tasks Checklist respects your privacy and is committed to protecting it. This Privacy Policy explains how the app handles information when you use it.\n\n" +
+                           "Information Collection\n" +
+                           "Daily Tasks Checklist does not collect, store, or transmit any personal information. All tasks, checklist data, and completion history are stored locally on your device only.\n\n" +
+                           "The app does not require you to create an account, log in, or provide personal details such as name, email address, phone number, or location.\n\n" +
                            "Data Storage\n" +
-                           "All information entered into the app, such as task names and daily checklist status, is stored locally on your device only. This data is not transmitted to any external servers or third parties.\n\n" +
-                           "Data Sharing\n" +
-                           "The app does not share user data with any third parties. No data is sold, rented, or distributed in any form.\n\n" +
-                           "Advertisements\n" +
-                           "Currently, Daily Tasks Checklist does not display advertisements. If advertisements are added in the future, they may be provided by trusted third-party services and will comply with applicable privacy policies and regulations.\n\n" +
+                           "All task data is saved locally on your device using internal app storage. The app does not use cloud storage or external servers. The developer has no access to your tasks or usage data.\n\n" +
+                           "If you uninstall the app, clear app data, or reset your device, all stored data will be permanently deleted. This data cannot be recovered.\n\n" +
+                           "Internet Usage\n" +
+                           "Daily Tasks Checklist works fully offline. It does not require an internet connection to function and does not transmit data over the network.\n\n" +
+                           "Third-Party Services\n" +
+                           "The app does not integrate with advertising networks, analytics tools, social media platforms, or third-party SDKs that collect personal data. If such services are added in future versions, this Privacy Policy will be updated accordingly.\n\n" +
+                           "Children’s Privacy\n" +
+                           "Daily Tasks Checklist does not knowingly collect any personal information from children under the age of 13. Since no personal data is collected at all, the app is safe for general use.\n\n" +
                            "Data Security\n" +
-                           "Since all data is stored locally on the user’s device, users are responsible for maintaining the security of their device. Uninstalling the app will permanently remove all stored data.\n\n" +
-                           "Changes to This Policy\n" +
-                           "This Privacy Policy may be updated from time to time. Any changes will be reflected within the app.\n\n" +
+                           "Because all data is stored locally on your device, data security depends on your device’s security settings. We recommend using standard device protections such as screen locks and secure storage options.\n\n" +
+                           "Changes to This Privacy Policy\n" +
+                           "This Privacy Policy may be updated from time to time. Any changes will be reflected within the app. Continued use of the app after changes indicates acceptance of the updated policy.\n\n" +
                            "Contact\n" +
-                           "If you have any questions regarding this Privacy Policy, you may contact us through the support information provided in the app.",
+                           "If you have questions or concerns about this Privacy Policy, you may contact the developer through the contact details provided on the app store listing.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -287,6 +298,21 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                            "The developer reserves the right to modify, update, or discontinue any part of the app at any time without prior notice.\n\n" +
                            "Acceptance of Terms\n" +
                            "By installing or using Daily Tasks Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
+                    textAlign = TextAlign.Justify,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
+                )
+            }
+        }
+        Screen.ContactSupport -> {
+            SubAboutPage(title = "Contact Support", onBack = { currentScreen = Screen.About }) {
+                Text(
+                    text = "If you have any questions, feedback, or need assistance, we're here to help!\n\n" +
+                           "You can reach out to us for:\n" +
+                           "• Reporting bugs or technical issues\n" +
+                           "• Suggesting new features\n" +
+                           "• General inquiries about the app\n\n" +
+                           "Please contact us through the developer information provided on the app's store listing. We appreciate your support and aim to respond as quickly as possible.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -504,7 +530,7 @@ fun ChecklistPage(
     onOpenOptions: () -> Unit
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Breakfast", "Lunch", "Dinner")
+    val tabs = listOf("Morning", "Afternoon", "Evening")
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val currentTabTitle = tabs[selectedTabIndex]
@@ -513,9 +539,9 @@ fun ChecklistPage(
     val todayRecords by viewModel.todayRecords.collectAsState()
     val isSaved = todayRecords.any { it.timeSlot == currentTabTitle }
 
-    val breakfastCompleted = todayRecords.any { it.timeSlot == "Breakfast" }
-    val lunchCompleted = todayRecords.any { it.timeSlot == "Lunch" }
-    val dinnerCompleted = todayRecords.any { it.timeSlot == "Dinner" }
+    val morningCompleted = todayRecords.any { it.timeSlot == "Morning" }
+    val afternoonCompleted = todayRecords.any { it.timeSlot == "Afternoon" }
+    val eveningCompleted = todayRecords.any { it.timeSlot == "Evening" }
 
     val currentTabTasks = remember(tasks, todayRecords, selectedTabIndex) {
         if (isSaved) {
@@ -529,9 +555,9 @@ fun ChecklistPage(
     val allTaken = remember(currentTabTasks, selectedTabIndex) {
         currentTabTasks.isNotEmpty() && currentTabTasks.all {
             when (currentTabTitle) {
-                "Breakfast" -> it.isTakenBreakfast
-                "Lunch" -> it.isTakenLunch
-                "Dinner" -> it.isTakenDinner
+                "Morning" -> it.isTakenMorning
+                "Afternoon" -> it.isTakenAfternoon
+                "Evening" -> it.isTakenEvening
                 else -> false
             }
         }
@@ -679,27 +705,27 @@ fun ChecklistPage(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomTabButton(
-                    text = "Breakfast",
+                    text = "Morning",
                     isSelected = selectedTabIndex == 0,
-                    isCompleted = breakfastCompleted,
+                    isCompleted = morningCompleted,
                     onClick = { selectedTabIndex = 0 },
                     bgColor = Color(0xFFE3F2FD),
                     textColor = Color(0xFF1976D2),
                     modifier = Modifier.weight(1f)
                 )
                 CustomTabButton(
-                    text = "Lunch",
+                    text = "Afternoon",
                     isSelected = selectedTabIndex == 1,
-                    isCompleted = lunchCompleted,
+                    isCompleted = afternoonCompleted,
                     onClick = { selectedTabIndex = 1 },
                     bgColor = Color(0xFFF1F8E9),
                     textColor = Color(0xFF388E3C),
                     modifier = Modifier.weight(1f)
                 )
                 CustomTabButton(
-                    text = "Dinner",
+                    text = "Evening",
                     isSelected = selectedTabIndex == 2,
-                    isCompleted = dinnerCompleted,
+                    isCompleted = eveningCompleted,
                     onClick = { selectedTabIndex = 2 },
                     bgColor = Color(0xFFFBE9E7),
                     textColor = Color(0xFFD32F2F),
@@ -735,9 +761,9 @@ fun ChecklistPage(
                             true 
                         } else {
                             when (currentTabTitle) {
-                                "Breakfast" -> task.isTakenBreakfast
-                                "Lunch" -> task.isTakenLunch
-                                "Dinner" -> task.isTakenDinner
+                                "Morning" -> task.isTakenMorning
+                                "Afternoon" -> task.isTakenAfternoon
+                                "Evening" -> task.isTakenEvening
                                 else -> false
                             }
                         }
@@ -839,7 +865,7 @@ fun OptionsPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OptionButton(
-                text = "Monthly Status Report",
+                text = "Monthly Progress",
                 icon = Icons.Default.CalendarMonth,
                 color = BluePrimary,
                 onClick = onNavigateToMonthlyStatus
@@ -921,7 +947,7 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Monthly Status Report", fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text("Monthly Progress", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
@@ -986,11 +1012,11 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                     ) {
                         TableHeaderCell("Date", Modifier.weight(1.2f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
-                        TableHeaderCell("Breakfast", Modifier.weight(1f))
+                        TableHeaderCell("Morning", Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
-                        TableHeaderCell("Lunch", Modifier.weight(1f))
+                        TableHeaderCell("Afternoon", Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
-                        TableHeaderCell("Dinner", Modifier.weight(1f))
+                        TableHeaderCell("Evening", Modifier.weight(1f))
                     }
 
                     val dates = remember(selectedMonthIndex) { 
@@ -1083,11 +1109,11 @@ fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
     ) {
         Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Breakfast", date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Morning", date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Lunch", date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Afternoon", date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Dinner", date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Evening", date, rowRecords, tasks))
     }
 }
 
@@ -1151,6 +1177,7 @@ fun AboutPage(
     onNavigateToVersion: () -> Unit,
     onNavigateToPrivacy: () -> Unit,
     onNavigateToTerms: () -> Unit,
+    onNavigateToContact: () -> Unit,
     onBack: () -> Unit
 ) {
     Scaffold(
@@ -1177,6 +1204,7 @@ fun AboutPage(
             AboutOptionItem(text = "Version", onClick = onNavigateToVersion)
             AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToPrivacy)
             AboutOptionItem(text = "Terms & Disclaimer", onClick = onNavigateToTerms)
+            AboutOptionItem(text = "Contact Support", onClick = onNavigateToContact)
         }
     }
 }
@@ -1386,7 +1414,7 @@ fun AddTaskDialog(
 ) {
     var name by remember { mutableStateOf("") }
     var tablets by remember { mutableStateOf("") }
-    val timeOptions = listOf("Breakfast", "Lunch", "Dinner")
+    val timeOptions = listOf("Morning", "Afternoon", "Evening")
     var selectedTimes by remember { mutableStateOf(setOf<String>()) }
 
     Dialog(
@@ -1474,9 +1502,9 @@ fun AddTaskDialog(
                         timeOptions.forEach { time ->
                             val isSelected = selectedTimes.contains(time)
                             val chipColor = when(time) {
-                                "Breakfast" -> if (isSelected) Color(0xFF1976D2) else Color(0xFFE3F2FD)
-                                "Lunch" -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
-                                "Dinner" -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
+                                "Morning" -> if (isSelected) Color(0xFF1976D2) else Color(0xFFE3F2FD)
+                                "Afternoon" -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
+                                "Evening" -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
                                 else -> BluePrimary
                             }
                             

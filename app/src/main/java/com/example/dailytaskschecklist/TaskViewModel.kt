@@ -50,9 +50,9 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
     fun toggleTaskTaken(task: Task, timeSlot: String) {
         viewModelScope.launch {
             val updatedTask = when (timeSlot) {
-                "Breakfast" -> task.copy(isTakenBreakfast = !task.isTakenBreakfast)
-                "Lunch" -> task.copy(isTakenLunch = !task.isTakenLunch)
-                "Dinner" -> task.copy(isTakenDinner = !task.isTakenDinner)
+                "Morning" -> task.copy(isTakenMorning = !task.isTakenMorning)
+                "Afternoon" -> task.copy(isTakenAfternoon = !task.isTakenAfternoon)
+                "Evening" -> task.copy(isTakenEvening = !task.isTakenEvening)
                 else -> task
             }
             dao.updateTask(updatedTask)
@@ -64,9 +64,9 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
             val date = _currentDate.value
             tasks.forEach { task ->
                 val wasTaken = when (timeSlot) {
-                    "Breakfast" -> task.isTakenBreakfast
-                    "Lunch" -> task.isTakenLunch
-                    "Dinner" -> task.isTakenDinner
+                    "Morning" -> task.isTakenMorning
+                    "Afternoon" -> task.isTakenAfternoon
+                    "Evening" -> task.isTakenEvening
                     else -> false
                 }
                 dao.insertRecord(
@@ -88,9 +88,9 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
             allTasks.forEach { task ->
                 dao.updateTask(
                     task.copy(
-                        isTakenBreakfast = false,
-                        isTakenLunch = false,
-                        isTakenDinner = false,
+                        isTakenMorning = false,
+                        isTakenAfternoon = false,
+                        isTakenEvening = false,
                         taskTaken = false
                     )
                 )

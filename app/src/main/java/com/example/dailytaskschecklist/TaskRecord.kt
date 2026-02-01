@@ -8,6 +8,6 @@ data class TaskRecord(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val taskName: String,
     val date: String, // format: yyyy-MM-dd
-    val timeSlot: String, // Breakfast, Lunch, Dinner
+    val timeSlot: String, // Morning, Afternoon, Evening
     val wasTaken: Boolean
 )
