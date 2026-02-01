@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.simplemedicinechecklist"
+    namespace = "com.example.dailytaskschecklist"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.simplemedicinechecklist"
+        applicationId = "com.example.dailytaskschecklist"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
