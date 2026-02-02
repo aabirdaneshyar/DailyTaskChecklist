@@ -8,8 +8,8 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <!-- Background color of the splash screen -->
         <item name="windowSplashScreenBackground">#CBE6FF</item>
-        <!-- Use the app icon for the system splash -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_tasks</item>
+        <!-- Set the icon to transparent to "remove" it -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/transparent</item>
         <!-- The theme of the activity that will be used after the splash screen -->
         <item name="postSplashScreenTheme">@style/Theme.DailyTasksChecklist</item>
     </style>
