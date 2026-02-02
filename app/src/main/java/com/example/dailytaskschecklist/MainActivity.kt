@@ -1358,7 +1358,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     color = TextPrimary
                 )
                 Text(
-                    text = "${task.numberOfTablets} • ${task.times}",
+                    text = "${task.numberOfTablets} • ${task.times} • ${task.priority}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
