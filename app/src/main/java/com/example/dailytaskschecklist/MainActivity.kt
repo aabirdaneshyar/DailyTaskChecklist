@@ -547,7 +547,7 @@ fun ChecklistPage(
     val eveningCompleted = todayRecords.any { it.timeSlot == "Evening" }
 
     val currentItems = remember(tasks, todayRecords, selectedTabIndex) {
-        if (isSaved) {
+        val list = if (isSaved) {
             todayRecords.filter { it.timeSlot == currentTabTitle }.map { record ->
                 Task(
                     name = record.taskName,
@@ -559,6 +559,15 @@ fun ChecklistPage(
             }
         } else {
             tasks.filter { it.times.contains(currentTabTitle) }
+        }
+        
+        list.sortedByDescending { task ->
+            when (task.priority) {
+                "High" -> 3
+                "Medium" -> 2
+                "Low" -> 1
+                else -> 0
+            }
         }
     }
 
@@ -1267,7 +1276,6 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
@@ -1549,7 +1557,6 @@ fun AddTaskDialog(
                 }
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-                    @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
                     Text(
                         text = "Priority",
                         style = MaterialTheme.typography.titleMedium,
@@ -1650,7 +1657,6 @@ fun AddTaskDialog(
                     ) {
                         Text("Add to List", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
-                    @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
                     TextButton(
                         onClick = onDismiss,
                         modifier = Modifier.fillMaxWidth()
