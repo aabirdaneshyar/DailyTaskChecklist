@@ -260,7 +260,12 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                            "Internet Usage\n" +
                            "Daily Tasks Checklist works fully offline. It does not require an internet connection to function and does not transmit data over the network.\n\n" +
                            "Third-Party Services\n" +
-                           "The app does not integrate with advertising networks, analytics tools, social media platforms, or third-party SDKs that collect personal data. If such services are added in future versions, this Privacy Policy will be updated accordingly.\n\n" +
+                           "The app does not integrate with:\n" +
+                           "• Advertising networks\n" +
+                           "• Analytics tools\n" +
+                           "• Social media platforms\n" +
+                           "• Third-party SDKs that collect personal data\n\n" +
+                           "If such services are added in future versions, this Privacy Policy will be updated accordingly.\n\n" +
                            "Children’s Privacy\n" +
                            "Daily Tasks Checklist does not knowingly collect any personal information from children under the age of 13. Since no personal data is collected at all, the app is safe for general use.\n\n" +
                            "Data Security\n" +
@@ -467,7 +472,7 @@ fun AddTaskPage(
         ) {
             if (tasks.isEmpty()) {
                 EmptyStateView(
-                    icon = Icons.Default.MedicalServices,
+                    icon = Icons.Default.AddCircle,
                     message = "Your task list is empty.\nTap the button below to add your first task."
                 )
             } else {
