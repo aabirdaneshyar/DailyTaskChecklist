@@ -555,8 +555,8 @@ fun ChecklistPage(
         }
     }
 
-    val allTaken = remember(currentTabTasks, selectedTabIndex) {
-        currentTabTasks.isNotEmpty() && currentTabTasks.all {
+    val takenCount = remember(currentTabTasks, selectedTabIndex) {
+        currentTabTasks.count {
             when (currentTabTitle) {
                 "Morning" -> it.isTakenMorning
                 "Afternoon" -> it.isTakenAfternoon
@@ -565,6 +565,8 @@ fun ChecklistPage(
             }
         }
     }
+
+    var showPartialSaveDialog by remember { mutableStateOf(false) }
 
     var isRefreshing by remember { mutableStateOf(false) }
     val rotation = animateFloatAsState(
@@ -642,8 +644,10 @@ fun ChecklistPage(
             ) {
                 Button(
                     onClick = { 
-                        if (!allTaken) {
-                            Toast.makeText(context, "Please check all tasks first", Toast.LENGTH_SHORT).show()
+                        if (takenCount == 0) {
+                            Toast.makeText(context, "Please select a task", Toast.LENGTH_SHORT).show()
+                        } else if (takenCount < currentTabTasks.size) {
+                            showPartialSaveDialog = true
                         } else {
                             viewModel.saveDailyRecords(currentTabTasks, currentTabTitle)
                             Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
@@ -761,7 +765,7 @@ fun ChecklistPage(
                 ) {
                     items(currentTabTasks) { task ->
                         val isTaken = if (isSaved) {
-                            true 
+                            todayRecords.find { it.taskName == task.name && it.timeSlot == currentTabTitle }?.wasTaken ?: false
                         } else {
                             when (currentTabTitle) {
                                 "Morning" -> task.isTakenMorning
@@ -778,6 +782,28 @@ fun ChecklistPage(
                     }
                 }
             }
+        }
+
+        if (showPartialSaveDialog) {
+            AlertDialog(
+                onDismissRequest = { showPartialSaveDialog = false },
+                title = { Text("Save Tasks") },
+                text = { Text("Do you want to save without selecting all the tasks?") },
+                confirmButton = {
+                    Button(onClick = {
+                        viewModel.saveDailyRecords(currentTabTasks, currentTabTitle)
+                        Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
+                        showPartialSaveDialog = false
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showPartialSaveDialog = false }) {
+                        Text("No")
+                    }
+                }
+            )
         }
     }
 }
