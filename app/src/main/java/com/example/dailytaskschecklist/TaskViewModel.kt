@@ -72,6 +72,7 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
                 dao.insertRecord(
                     TaskRecord(
                         taskName = task.name,
+                        taskDetails = task.numberOfTablets,
                         date = date,
                         timeSlot = timeSlot,
                         wasTaken = wasTaken

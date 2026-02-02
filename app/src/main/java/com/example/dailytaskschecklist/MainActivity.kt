@@ -546,22 +546,32 @@ fun ChecklistPage(
     val afternoonCompleted = todayRecords.any { it.timeSlot == "Afternoon" }
     val eveningCompleted = todayRecords.any { it.timeSlot == "Evening" }
 
-    val currentTabTasks = remember(tasks, todayRecords, selectedTabIndex) {
+    val currentItems = remember(tasks, todayRecords, selectedTabIndex) {
         if (isSaved) {
-            val savedNames = todayRecords.filter { it.timeSlot == currentTabTitle }.map { it.taskName }
-            tasks.filter { savedNames.contains(it.name) }
+            todayRecords.filter { it.timeSlot == currentTabTitle }.map { record ->
+                Task(
+                    name = record.taskName,
+                    numberOfTablets = record.taskDetails,
+                    times = record.timeSlot,
+                    taskTaken = record.wasTaken
+                )
+            }
         } else {
             tasks.filter { it.times.contains(currentTabTitle) }
         }
     }
 
-    val takenCount = remember(currentTabTasks, selectedTabIndex) {
-        currentTabTasks.count {
-            when (currentTabTitle) {
-                "Morning" -> it.isTakenMorning
-                "Afternoon" -> it.isTakenAfternoon
-                "Evening" -> it.isTakenEvening
-                else -> false
+    val takenCount = remember(currentItems, selectedTabIndex, isSaved) {
+        currentItems.count { item ->
+            if (isSaved) {
+                item.taskTaken
+            } else {
+                when (currentTabTitle) {
+                    "Morning" -> item.isTakenMorning
+                    "Afternoon" -> item.isTakenAfternoon
+                    "Evening" -> item.isTakenEvening
+                    else -> false
+                }
             }
         }
     }
@@ -646,14 +656,14 @@ fun ChecklistPage(
                     onClick = { 
                         if (takenCount == 0) {
                             Toast.makeText(context, "Please select a task", Toast.LENGTH_SHORT).show()
-                        } else if (takenCount < currentTabTasks.size) {
+                        } else if (takenCount < currentItems.size) {
                             showPartialSaveDialog = true
                         } else {
-                            viewModel.saveDailyRecords(currentTabTasks, currentTabTitle)
+                            viewModel.saveDailyRecords(currentItems, currentTabTitle)
                             Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    enabled = !isSaved && currentTabTasks.isNotEmpty(),
+                    enabled = !isSaved && currentItems.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -743,14 +753,14 @@ fun ChecklistPage(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "Total number of tasks : ${currentTabTasks.size}",
+                text = "Total number of tasks : ${currentItems.size}",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp),
                 color = TextHeader
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (currentTabTasks.isEmpty()) {
+            if (currentItems.isEmpty()) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     EmptyStateView(
                         icon = Icons.Default.DoneAll,
@@ -763,9 +773,9 @@ fun ChecklistPage(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
-                    items(currentTabTasks) { task ->
+                    items(currentItems) { task ->
                         val isTaken = if (isSaved) {
-                            todayRecords.find { it.taskName == task.name && it.timeSlot == currentTabTitle }?.wasTaken ?: false
+                            task.taskTaken
                         } else {
                             when (currentTabTitle) {
                                 "Morning" -> task.isTakenMorning
@@ -791,7 +801,7 @@ fun ChecklistPage(
                 text = { Text("Do you want to save without selecting all the tasks?") },
                 confirmButton = {
                     Button(onClick = {
-                        viewModel.saveDailyRecords(currentTabTasks, currentTabTitle)
+                        viewModel.saveDailyRecords(currentItems, currentTabTitle)
                         Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
                         showPartialSaveDialog = false
                     }) {
