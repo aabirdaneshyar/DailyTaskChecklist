@@ -10,11 +10,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -28,11 +31,15 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -1251,7 +1258,7 @@ fun AboutPage(
         ) {
             AboutOptionItem(text = "About the App", onClick = onNavigateToAboutApp)
             AboutOptionItem(text = "Version", onClick = onNavigateToVersion)
-            AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToPrivacy)
+            AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToAboutApp)
             AboutOptionItem(text = "Terms & Disclaimer", onClick = onNavigateToTerms)
             AboutOptionItem(text = "Contact Support", onClick = onNavigateToContact)
         }
@@ -1479,6 +1486,8 @@ fun AddTaskDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, String, String) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
     var tablets by remember { mutableStateOf("") }
     val timeOptions = listOf("Morning", "Afternoon", "Evening")
@@ -1493,7 +1502,13 @@ fun AddTaskDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
+                .wrapContentHeight()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    })
+                },
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -1506,19 +1521,6 @@ fun AddTaskDialog(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Surface(
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape,
-                        color = BluePrimary.copy(alpha = 0.1f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircle,
-                            contentDescription = null,
-                            modifier = Modifier.padding(16.dp),
-                            tint = BluePrimary
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "New Task",
                         style = MaterialTheme.typography.headlineSmall,
@@ -1539,7 +1541,9 @@ fun AddTaskDialog(
                             focusedBorderColor = BluePrimary,
                             unfocusedBorderColor = Color.LightGray,
                             focusedLabelColor = BluePrimary
-                        )
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) })
                     )
                     OutlinedTextField(
                         value = tablets,
@@ -1552,7 +1556,12 @@ fun AddTaskDialog(
                             focusedBorderColor = BluePrimary,
                             unfocusedBorderColor = Color.LightGray,
                             focusedLabelColor = BluePrimary
-                        )
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { 
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                        })
                     )
                 }
 
@@ -1585,6 +1594,8 @@ fun AddTaskDialog(
                                     .background(chipColor)
                                     .clickable {
                                         selectedPriority = priority
+                                        keyboardController?.hide()
+                                        focusManager.clearFocus()
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -1628,6 +1639,8 @@ fun AddTaskDialog(
                                     .background(chipColor)
                                     .clickable {
                                         selectedTimes = if (isSelected) selectedTimes - time else selectedTimes + time
+                                        keyboardController?.hide()
+                                        focusManager.clearFocus()
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -1644,7 +1657,11 @@ fun AddTaskDialog(
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { onConfirm(name, tablets, selectedTimes.joinToString(", "), selectedPriority) },
+                        onClick = { 
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                            onConfirm(name, tablets, selectedTimes.joinToString(", "), selectedPriority) 
+                        },
                         enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1658,7 +1675,11 @@ fun AddTaskDialog(
                         Text("Add to List", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                     TextButton(
-                        onClick = onDismiss,
+                        onClick = {
+                            keyboardController?.hide()
+                            focusManager.clearFocus()
+                            onDismiss()
+                        },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Cancel", color = TextSecondary, fontWeight = FontWeight.Medium)
