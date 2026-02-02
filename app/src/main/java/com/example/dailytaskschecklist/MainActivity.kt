@@ -371,7 +371,7 @@ fun SplashScreen() {
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.app_icon_v2),
+                            painter = painterResource(id = R.drawable.icon_tasks),
                             contentDescription = "App Logo",
                             modifier = Modifier.fillMaxSize().scale(1.5f),
                             contentScale = ContentScale.Crop
