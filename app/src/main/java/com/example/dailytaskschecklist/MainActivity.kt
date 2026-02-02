@@ -492,8 +492,8 @@ fun AddTaskPage(
         if (showAddDialog) {
             AddTaskDialog(
                 onDismiss = { showAddDialog = false },
-                onConfirm = { name, tablets, times ->
-                    viewModel.addTask(name, tablets, times)
+                onConfirm = { name, tablets, times, priority ->
+                    viewModel.addTask(name, tablets, times, priority)
                     showAddDialog = false
                 }
             )
@@ -828,6 +828,7 @@ fun CustomTabButton(
     textColor: Color,
     modifier: Modifier = Modifier
 ) {
+    @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1099,6 +1100,7 @@ fun StatusTabButton(
         border = if (!isSelected) BorderStroke(1.dp, BluePrimary.copy(alpha = 0.2f)) else null
     ) {
         Box(contentAlignment = Alignment.Center) {
+            @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
             Text(
                 text = text,
                 fontWeight = FontWeight.Bold,
@@ -1437,6 +1439,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
             tint = BluePrimary.copy(alpha = 0.3f)
         )
         Spacer(modifier = Modifier.height(24.dp))
+        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
@@ -1449,12 +1452,14 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
 @Composable
 fun AddTaskDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String) -> Unit
+    onConfirm: (String, String, String, String) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var tablets by remember { mutableStateOf("") }
     val timeOptions = listOf("Morning", "Afternoon", "Evening")
+    val priorityOptions = listOf("Low", "Medium", "High")
     var selectedTimes by remember { mutableStateOf(setOf<String>()) }
+    var selectedPriority by remember { mutableStateOf("Medium") }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -1528,6 +1533,49 @@ fun AddTaskDialog(
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                     Text(
+                        text = "Priority",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextHeader
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        priorityOptions.forEach { priority ->
+                            val isSelected = selectedPriority == priority
+                            val chipColor = when(priority) {
+                                "Low" -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
+                                "Medium" -> if (isSelected) Color(0xFFFBC02D) else Color(0xFFFFF9C4)
+                                "High" -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
+                                else -> BluePrimary
+                            }
+                            
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(40.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(chipColor)
+                                    .clickable {
+                                        selectedPriority = priority
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = priority,
+                                    color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.8f),
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                    Text(
                         text = "Schedule",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
@@ -1571,7 +1619,7 @@ fun AddTaskDialog(
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { onConfirm(name, tablets, selectedTimes.joinToString(", ")) },
+                        onClick = { onConfirm(name, tablets, selectedTimes.joinToString(", "), selectedPriority) },
                         enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
                         modifier = Modifier
                             .fillMaxWidth()

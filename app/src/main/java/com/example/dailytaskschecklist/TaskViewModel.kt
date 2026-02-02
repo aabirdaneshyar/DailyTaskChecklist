@@ -110,9 +110,9 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
         }
     }
 
-    fun addTask(name: String, tablets: String, times: String) {
+    fun addTask(name: String, tablets: String, times: String, priority: String) {
         viewModelScope.launch {
-            dao.insertTask(Task(name = name, numberOfTablets = tablets, times = times))
+            dao.insertTask(Task(name = name, numberOfTablets = tablets, times = times, priority = priority))
         }
     }
 
