@@ -553,6 +553,7 @@ fun ChecklistPage(
                     name = record.taskName,
                     numberOfTablets = record.taskDetails,
                     times = record.timeSlot,
+                    priority = record.taskPriority,
                     taskTaken = record.wasTaken
                 )
             }
@@ -828,7 +829,6 @@ fun CustomTabButton(
     textColor: Color,
     modifier: Modifier = Modifier
 ) {
-    @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1100,7 +1100,6 @@ fun StatusTabButton(
         border = if (!isSelected) BorderStroke(1.dp, BluePrimary.copy(alpha = 0.2f)) else null
     ) {
         Box(contentAlignment = Alignment.Center) {
-            @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
             Text(
                 text = text,
                 fontWeight = FontWeight.Bold,
@@ -1268,6 +1267,7 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
@@ -1377,6 +1377,13 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
         label = "color"
     )
 
+    val priorityColor = when (task.priority) {
+        "Low" -> Color(0xFF388E3C)
+        "Medium" -> Color(0xFFFBC02D)
+        "High" -> Color(0xFFD32F2F)
+        else -> Color.Gray
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1404,7 +1411,18 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
                     uncheckedColor = TextSecondary
                 )
             )
+            
+            // Priority Standing Line
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(priorityColor)
+            )
+            
             Spacer(modifier = Modifier.width(12.dp))
+            
             Column {
                 Text(
                     text = task.name,
@@ -1439,7 +1457,6 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
             tint = BluePrimary.copy(alpha = 0.3f)
         )
         Spacer(modifier = Modifier.height(24.dp))
-        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
@@ -1532,6 +1549,7 @@ fun AddTaskDialog(
                 }
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                    @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
                     Text(
                         text = "Priority",
                         style = MaterialTheme.typography.titleMedium,
@@ -1632,6 +1650,7 @@ fun AddTaskDialog(
                     ) {
                         Text("Add to List", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
+                    @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
                     TextButton(
                         onClick = onDismiss,
                         modifier = Modifier.fillMaxWidth()
