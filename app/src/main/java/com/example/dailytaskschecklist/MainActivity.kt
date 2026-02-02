@@ -230,9 +230,9 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.AboutApp -> {
             SubAboutPage(title = "About the App", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Tasks Checklist is a simple and easy-to-use app designed to help you stay organized and productive every day. It allows you to create, track, and complete your daily tasks with clarity and consistency.\n\n" +
+                    text = "Tasks Checklist is a simple and easy-to-use app designed to help you stay organized and productive every day. It allows you to create, track, and complete your daily tasks with clarity and consistency.\n\n" +
                            "The app focuses on simplicity — no unnecessary features, no distractions. You can define your tasks, mark them as completed as you progress through the day, and review your daily or monthly completion status to understand your habits better.\n\n" +
-                           "Daily Tasks Checklist is ideal for:\n" +
+                           "Tasks Checklist is ideal for:\n" +
                            "• Managing personal daily routines\n" +
                            "• Tracking work or study-related tasks\n" +
                            "• Building healthy habits\n" +
@@ -247,23 +247,23 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         }
         Screen.Version -> {
             SubAboutPage(title = "Version", onBack = { currentScreen = Screen.About }) {
-                Text("App Name: Daily Tasks Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("App Name: Tasks Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Text("Version: 1.0.0", fontSize = 16.sp)
             }
         }
         Screen.PrivacyPolicy -> {
             SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Last updated: November 24, 2024\n\n" +
-                           "Daily Tasks Checklist respects your privacy and is committed to protecting it. This Privacy Policy explains how the app handles information when you use it.\n\n" +
+                    text = "Last updated: March 3, 2026\n\n" +
+                           "Tasks Checklist respects your privacy and is committed to protecting it. This Privacy Policy explains how the app handles information when you use it.\n\n" +
                            "Information Collection\n" +
-                           "Daily Tasks Checklist does not collect, store, or transmit any personal information. All tasks, checklist data, and completion history are stored locally on your device only.\n\n" +
+                           "Tasks Checklist does not collect, store, or transmit any personal information. All tasks, checklist data, and completion history are stored locally on your device only.\n\n" +
                            "The app does not require you to create an account, log in, or provide personal details such as name, email address, phone number, or location.\n\n" +
                            "Data Storage\n" +
                            "All task data is saved locally on your device using internal app storage. The app does not use cloud storage or external servers. The developer has no access to your tasks or usage data.\n\n" +
                            "If you uninstall the app, clear app data, or reset your device, all stored data will be permanently deleted. This data cannot be recovered.\n\n" +
                            "Internet Usage\n" +
-                           "Daily Tasks Checklist works fully offline. It does not require an internet connection to function and does not transmit data over the network.\n\n" +
+                           "Tasks Checklist works fully offline. It does not require an internet connection to function and does not transmit data over the network.\n\n" +
                            "Third-Party Services\n" +
                            "The app does not integrate with:\n" +
                            "• Advertising networks\n" +
@@ -272,7 +272,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                            "• Third-party SDKs that collect personal data\n\n" +
                            "If such services are added in future versions, this Privacy Policy will be updated accordingly.\n\n" +
                            "Children’s Privacy\n" +
-                           "Daily Tasks Checklist does not knowingly collect any personal information from children under the age of 13. Since no personal data is collected at all, the app is safe for general use.\n\n" +
+                           "Tasks Checklist does not knowingly collect any personal information from children under the age of 13. Since no personal data is collected at all, the app is safe for general use.\n\n" +
                            "Data Security\n" +
                            "Because all data is stored locally on your device, data security depends on your device’s security settings. We recommend using standard device protections such as screen locks and secure storage options.\n\n" +
                            "Changes to This Privacy Policy\n" +
@@ -288,9 +288,9 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.TermsDisclaimer -> {
             SubAboutPage(title = "Terms & Disclaimer", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Daily Tasks Checklist is provided as a simple task tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\n" +
+                    text = "Tasks Checklist is provided as a simple task tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\n" +
                            "Intended Use\n" +
-                           "Daily Tasks Checklist is intended solely as a tool to help users track and mark their daily tasks in a checklist format.\n\n" +
+                           "Tasks Checklist is intended solely as a tool to help users track and mark their daily tasks in a checklist format.\n\n" +
                            "User Responsibility\n" +
                            "Users are fully responsible for:\n" +
                            "• Entering correct task names and schedules\n" +
@@ -301,13 +301,13 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                            "Limitation of Liability\n" +
                            "To the fullest extent permitted by law, the developer shall not be held liable for any direct, indirect, incidental, or consequential damages, including but not limited to missed tasks, data loss, or other losses arising from the use of or inability to use this app.\n\n" +
                            "Data & Storage\n" +
-                           "All data entered into Daily Tasks Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.\n\n" +
+                           "All data entered into Tasks Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.\n\n" +
                            "Data Deletion & Storage Responsibility\n" +
                            "Deleting app data, clearing storage, uninstalling the app, using storage-cleaning tools, or performing device resets will permanently remove all stored information. The developer is not responsible for any data loss resulting from user actions, device settings, system updates, or storage management tools.\n\n" +
                            "Changes to the App\n" +
                            "The developer reserves the right to modify, update, or discontinue any part of the app at any time without prior notice.\n\n" +
                            "Acceptance of Terms\n" +
-                           "By installing or using Daily Tasks Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
+                           "By installing or using Tasks Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -386,7 +386,7 @@ fun SplashScreen() {
             }
             Spacer(modifier = Modifier.height(48.dp))
             Text(
-                text = "Daily Tasks Checklist",
+                text = "Tasks Checklist",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = BluePrimary,
@@ -713,7 +713,7 @@ fun ChecklistPage(
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Column {
                     Text(
-                        text = "Daily Tasks Checklist for",
+                        text = "Tasks Checklist for",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp
@@ -1258,7 +1258,7 @@ fun AboutPage(
         ) {
             AboutOptionItem(text = "About the App", onClick = onNavigateToAboutApp)
             AboutOptionItem(text = "Version", onClick = onNavigateToVersion)
-            AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToAboutApp)
+            AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToPrivacy)
             AboutOptionItem(text = "Terms & Disclaimer", onClick = onNavigateToTerms)
             AboutOptionItem(text = "Contact Support", onClick = onNavigateToContact)
         }
