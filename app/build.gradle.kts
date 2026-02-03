@@ -10,7 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.dailytaskschecklist"
+        applicationId = "com.checklistdev.tasks"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

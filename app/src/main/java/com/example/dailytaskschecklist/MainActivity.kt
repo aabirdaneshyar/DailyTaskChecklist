@@ -254,7 +254,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.PrivacyPolicy -> {
             SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Last updated: March 3, 2026\n\n" +
+                    text = "Last updated: 3rd February 2026\n\n" +
                            "Tasks Checklist respects your privacy and is committed to protecting it. This Privacy Policy explains how the app handles information when you use it.\n\n" +
                            "Information Collection\n" +
                            "Tasks Checklist does not collect, store, or transmit any personal information. All tasks, checklist data, and completion history are stored locally on your device only.\n\n" +
@@ -317,12 +317,14 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.ContactSupport -> {
             SubAboutPage(title = "Contact Support", onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "If you have any questions, feedback, or need assistance, we're here to help!\n\n" +
+                    text = "If you have any questions, feedback, or need assistance, we’re here to help.\n\n" +
                            "You can reach out to us for:\n" +
                            "• Reporting bugs or technical issues\n" +
                            "• Suggesting new features\n" +
                            "• General inquiries about the app\n\n" +
-                           "Please contact us through the developer information provided on the app's store listing. We appreciate your support and aim to respond as quickly as possible.",
+                           "You can contact us at:\n" +
+                           "developer.checklist@gmail.com\n\n" +
+                           "You may also reach out through the developer information provided on the app’s store listing. We appreciate your support and aim to respond as quickly as possible.",
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -845,6 +847,7 @@ fun CustomTabButton(
     textColor: Color,
     modifier: Modifier = Modifier
 ) {
+    @Suppress("DEPRECATION")
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -990,7 +993,7 @@ fun OptionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () -> Unit) {
-    var selectedMonthIndex by remember { mutableIntStateOf(0) } 
+    var selectedMonthIndex by remember { mutableStateOf(0) } 
     val currentMonthRecords by viewModel.getRecordsForMonth(0).collectAsState(initial = emptyList())
     val previousMonthRecords by viewModel.getRecordsForMonth(-1).collectAsState(initial = emptyList())
 
@@ -1513,6 +1516,7 @@ fun AddTaskDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
+            @Suppress("DEPRECATION")
             Column(
                 modifier = Modifier
                     .padding(24.dp)
@@ -1611,6 +1615,7 @@ fun AddTaskDialog(
                 }
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                    @Suppress("DEPRECATION")
                     Text(
                         text = "Schedule",
                         style = MaterialTheme.typography.titleMedium,
