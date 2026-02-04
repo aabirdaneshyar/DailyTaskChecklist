@@ -8,6 +8,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks")
     fun getAllTasks(): Flow<List<Task>>
 
+    @Query("SELECT * FROM tasks WHERE name = :name LIMIT 1")
+    suspend fun getTaskByName(name: String): Task?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: Task)
 

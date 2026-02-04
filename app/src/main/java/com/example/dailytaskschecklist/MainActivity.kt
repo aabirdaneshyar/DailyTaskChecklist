@@ -435,6 +435,8 @@ fun AddTaskPage(
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -502,8 +504,14 @@ fun AddTaskPage(
             AddTaskDialog(
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name, tablets, times, priority ->
-                    viewModel.addTask(name, tablets, times, priority)
-                    showAddDialog = false
+                    scope.launch {
+                        val isAdded = viewModel.addTask(name, tablets, times, priority)
+                        if (isAdded) {
+                            showAddDialog = false
+                        } else {
+                            Toast.makeText(context, "Task '$name' already exists!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             )
         }
