@@ -1,5 +1,7 @@
 package com.example.dailytaskschecklist
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
@@ -7,7 +9,9 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class TaskViewModel(private val dao: TaskDao) : ViewModel() {
+class TaskViewModel(private val dao: TaskDao, private val context: Context) : ViewModel() {
+
+    private val sharedPref: SharedPreferences = context.getSharedPreferences("task_prefs", Context.MODE_PRIVATE)
 
     val tasks: StateFlow<List<Task>> = dao.getAllTasks()
         .stateIn(
@@ -16,7 +20,7 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
             initialValue = emptyList()
         )
 
-    private val _currentDate = MutableStateFlow(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
+    private val _currentDate = MutableStateFlow(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()))
     val currentDate: StateFlow<String> = _currentDate.asStateFlow()
 
     val todayRecords: StateFlow<List<TaskRecord>> = _currentDate
@@ -27,18 +31,39 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
             initialValue = emptyList()
         )
 
+    init {
+        // Initial check on cold start
+        checkAndResetForNewDay()
+    }
+
     /**
      * Updates the date and returns true if the date has changed.
      * If the date has changed, it resets all tasks and prunes old records.
      */
     fun updateDate(): Boolean {
-        val newDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        if (_currentDate.value != newDate) {
-            _currentDate.value = newDate
+        return checkAndResetForNewDay()
+    }
+
+    private fun checkAndResetForNewDay(): Boolean {
+        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+        val lastResetDate = sharedPref.getString("last_reset_date", "")
+
+        if (todayStr != lastResetDate) {
+            // New day detected
+            _currentDate.value = todayStr
             resetAllTasksImmediately()
             pruneOldRecords()
+            
+            // Persist the new date
+            sharedPref.edit().putString("last_reset_date", todayStr).apply()
             return true
         }
+        
+        // Even if not a new day, ensure _currentDate is correct for UI
+        if (_currentDate.value != todayStr) {
+            _currentDate.value = todayStr
+        }
+        
         return false
     }
 
@@ -61,7 +86,7 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
     fun getRecordsForMonth(monthOffset: Int): Flow<List<TaskRecord>> {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.MONTH, monthOffset)
-        val monthQuery = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(calendar.time) + "%"
+        val monthQuery = SimpleDateFormat("yyyy-MM", Locale.US).format(calendar.time) + "%"
         return dao.getRecordsForMonth(monthQuery)
     }
 
@@ -124,7 +149,7 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
             calendar.set(Calendar.DAY_OF_MONTH, 1)
             calendar.add(Calendar.MONTH, -1)
             
-            val thresholdDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+            val thresholdDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(calendar.time)
             dao.pruneOldRecords(thresholdDate)
         }
     }

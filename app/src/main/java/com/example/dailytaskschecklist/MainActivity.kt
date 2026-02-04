@@ -1,6 +1,10 @@
 package com.example.dailytaskschecklist
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -45,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
@@ -80,7 +85,7 @@ class MainActivity : ComponentActivity() {
                 val context = LocalContext.current
                 val database = AppDatabase.getDatabase(context)
                 val viewModel: TaskViewModel = viewModel(
-                    factory = TaskViewModelFactory(database.taskDao())
+                    factory = TaskViewModelFactory(database.taskDao(), context.applicationContext)
                 )
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -114,10 +119,27 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        while(true) {
-            viewModel.updateDate()
-            delay(30000) 
+    DisposableEffect(Unit) {
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_TIME_TICK)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+            addAction(Intent.ACTION_DATE_CHANGED)
+        }
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                viewModel.updateDate()
+            }
+        }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(receiver, filter)
+        }
+        
+        onDispose {
+            context.unregisterReceiver(receiver)
         }
     }
 
@@ -609,7 +631,7 @@ fun ChecklistPage(
 
     fun formatUIDate(dateStr: String): String {
         return try {
-            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(dateStr)
             val calendar = Calendar.getInstance()
             calendar.time = date!!
             val day = calendar.get(Calendar.DAY_OF_MONTH)
@@ -1156,7 +1178,7 @@ fun formatReportDate(date: Date): String {
 
 @Composable
 fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
-    val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
+    val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
     val displayDate = formatReportDate(date)
     
     val rowRecords = records.filter { it.date == dateStr }
