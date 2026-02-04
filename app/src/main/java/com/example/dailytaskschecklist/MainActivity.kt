@@ -115,16 +115,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
     }
 
     LaunchedEffect(Unit) {
-        val sharedPref = context.getSharedPreferences("task_prefs", Context.MODE_PRIVATE)
         while(true) {
-            val currentDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            val lastResetDate = sharedPref.getString("last_reset_date", "")
-            
-            if (currentDateStr != lastResetDate) {
-                viewModel.resetAllTasks()
-                viewModel.pruneOldRecords()
-                sharedPref.edit { putString("last_reset_date", currentDateStr) }
-            }
             viewModel.updateDate()
             delay(30000) 
         }

@@ -29,15 +29,33 @@ class TaskViewModel(private val dao: TaskDao) : ViewModel() {
 
     /**
      * Updates the date and returns true if the date has changed.
+     * If the date has changed, it resets all tasks and prunes old records.
      */
     fun updateDate(): Boolean {
         val newDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         if (_currentDate.value != newDate) {
             _currentDate.value = newDate
-            // If date changed, we should ensure records are fresh
+            resetAllTasksImmediately()
+            pruneOldRecords()
             return true
         }
         return false
+    }
+
+    private fun resetAllTasksImmediately() {
+        viewModelScope.launch {
+            val allTasks = dao.getAllTasks().first()
+            allTasks.forEach { task ->
+                dao.updateTask(
+                    task.copy(
+                        isTakenMorning = false,
+                        isTakenAfternoon = false,
+                        isTakenEvening = false,
+                        taskTaken = false
+                    )
+                )
+            }
+        }
     }
 
     fun getRecordsForMonth(monthOffset: Int): Flow<List<TaskRecord>> {
