@@ -18,4 +18,10 @@
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+#-renamesourcefileattribute SourceFile,LineNumberTable
+
+# Room Database rules
+-keep class * extends androidx.room.RoomDatabase
+-keep class com.example.dailytaskschecklist.AppDatabase_Impl {
+    public <init>();
+}
