@@ -261,7 +261,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.Version -> {
             SubAboutPage(title = "Version", onBack = { currentScreen = Screen.About }) {
                 Text("App Name: Tasks Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Version: 1.0.5", fontSize = 16.sp)
+                Text("Version: 1.0.6", fontSize = 16.sp)
             }
         }
         Screen.PrivacyPolicy -> {
