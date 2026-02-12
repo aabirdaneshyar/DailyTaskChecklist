@@ -392,7 +392,7 @@ fun SplashScreen() {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_tasks),
-                            contentDescription = "App Logo",
+                            contentDescription = null, // Decorative icon
                             modifier = Modifier.fillMaxSize().scale(1.5f),
                             contentScale = ContentScale.Crop
                         )
@@ -453,12 +453,13 @@ fun AddTaskPage(
 
     Scaffold(
         topBar = {
+            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
                 title = { Text("Manage Tasks", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     if (showBackIcon) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
                         }
                     }
                 },
@@ -480,7 +481,7 @@ fun AddTaskPage(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showAddDialog = true },
-                icon = { Icon(Icons.Default.Add, "Add") },
+                icon = { Icon(Icons.Default.Add, "Add task icon") },
                 text = { Text("Add Task") },
                 containerColor = BluePrimary,
                 contentColor = Color.White
@@ -650,6 +651,7 @@ fun ChecklistPage(
 
     Scaffold(
         topBar = {
+            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
                 title = { },
                 actions = {
@@ -668,7 +670,7 @@ fun ChecklistPage(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh",
+                            contentDescription = "Refresh data",
                             tint = TextHeader.copy(alpha = 0.7f),
                             modifier = Modifier.rotate(rotation.value)
                         )
@@ -676,7 +678,7 @@ fun ChecklistPage(
                     IconButton(onClick = onOpenOptions) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Options",
+                            contentDescription = "Open options menu",
                             tint = TextHeader.copy(alpha = 0.7f)
                         )
                     }
@@ -716,7 +718,7 @@ fun ChecklistPage(
                         disabledContentColor = Color.White.copy(alpha = 0.74f)
                     )
                 ) {
-                    Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
+                    Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null) // Descriptive text already provided by button label
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = if (isSaved) "$currentTabTitle Records Saved" else "Save $currentTabTitle Tasks",
@@ -735,6 +737,7 @@ fun ChecklistPage(
         ) {
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Column {
+                    @Suppress("DEPRECATION")
                     Text(
                         text = "Tasks Checklist for",
                         style = MaterialTheme.typography.headlineMedium.copy(
@@ -743,6 +746,7 @@ fun ChecklistPage(
                         ),
                         color = TextHeader
                     )
+                    @Suppress("DEPRECATION")
                     Text(
                         text = formatUIDate(currentDateStr),
                         style = MaterialTheme.typography.headlineMedium.copy(
@@ -792,6 +796,7 @@ fun ChecklistPage(
 
             Spacer(modifier = Modifier.height(8.dp))
             
+            @Suppress("DEPRECATION")
             Text(
                 text = "Total number of tasks : ${currentItems.size}",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp),
@@ -926,11 +931,12 @@ fun OptionsPage(
 ) {
     Scaffold(
         topBar = {
+            @Suppress("DEPRECATION")
             LargeTopAppBar(
                 title = { Text("Options", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
                     }
                 }
             )
@@ -995,12 +1001,13 @@ fun OptionButton(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null,
+                    contentDescription = null, // Descriptive text already provided by adjacent Text
                     modifier = Modifier.padding(12.dp),
                     tint = color
                 )
             }
             Spacer(modifier = Modifier.width(20.dp))
+            @Suppress("DEPRECATION")
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleLarge,
@@ -1026,11 +1033,12 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
 
     Scaffold(
         topBar = {
+            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
                 title = { Text("Monthly Progress", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
@@ -1065,6 +1073,7 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
 
             Spacer(modifier = Modifier.height(8.dp))
             
+            @Suppress("DEPRECATION")
             Text(
                 text = monthName,
                 style = MaterialTheme.typography.titleLarge,
@@ -1123,11 +1132,11 @@ fun StatusTabButton(
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) BluePrimary else Color.White,
-        label = "bgColor"
+        label = "backgroundColorAnim"
     )
     val contentColor by animateColorAsState(
         targetValue = if (isSelected) Color.White else BluePrimary,
-        label = "contentColor"
+        label = "contentColorAnim"
     )
 
     Surface(
@@ -1201,7 +1210,7 @@ fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
 fun StatusCell(modifier: Modifier, status: StatusType) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         when (status) {
-            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = "Taken", tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
+            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = "Task completed", tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
             StatusType.None -> Text("-", color = Color.LightGray, fontWeight = FontWeight.Bold)
             StatusType.Future -> { /* Empty */ }
             else -> { /* No Cross used */ }
@@ -1262,11 +1271,12 @@ fun AboutPage(
 ) {
     Scaffold(
         topBar = {
+            @Suppress("DEPRECATION")
             LargeTopAppBar(
                 title = { Text("About", fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
                     }
                 }
             )
@@ -1315,7 +1325,7 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
             )
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
+                contentDescription = null, // Purely decorative
                 tint = Color.LightGray
             )
         }
@@ -1327,11 +1337,12 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
 fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     Scaffold(
         topBar = {
+            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
                 title = { Text(title, fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
                     }
                 }
             )
@@ -1376,12 +1387,13 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
             ) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
-                    contentDescription = null,
+                    contentDescription = null, // Decorative icon
                     tint = BluePrimary
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
+                @Suppress("DEPRECATION")
                 Text(
                     text = task.name,
                     style = MaterialTheme.typography.titleLarge,
@@ -1400,7 +1412,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     contentColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Delete task", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -1413,7 +1425,7 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
             Color(0xFFEEF6FB) 
         else 
             Color.White,
-        label = "color"
+        label = "backgroundColorAnim"
     )
 
     val priorityColor = when (task.priority) {
@@ -1491,7 +1503,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = null, // Decorative background icon
             modifier = Modifier.size(84.dp),
             tint = BluePrimary.copy(alpha = 0.3f)
         )
