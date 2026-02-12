@@ -564,22 +564,22 @@ fun ChecklistPage(
     onOpenOptions: () -> Unit
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Morning", "Afternoon", "Evening")
+    val tabs = TimeSlot.entries
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val currentTabTitle = tabs[selectedTabIndex]
+    val currentTab = tabs[selectedTabIndex]
     
     val currentDateStr by viewModel.currentDate.collectAsState()
     val todayRecords by viewModel.todayRecords.collectAsState()
-    val isSaved = todayRecords.any { it.timeSlot == currentTabTitle }
+    val isSaved = todayRecords.any { it.timeSlot == currentTab.title }
 
-    val morningCompleted = todayRecords.any { it.timeSlot == "Morning" }
-    val afternoonCompleted = todayRecords.any { it.timeSlot == "Afternoon" }
-    val eveningCompleted = todayRecords.any { it.timeSlot == "Evening" }
+    val morningCompleted = todayRecords.any { it.timeSlot == TimeSlot.Morning.title }
+    val afternoonCompleted = todayRecords.any { it.timeSlot == TimeSlot.Afternoon.title }
+    val eveningCompleted = todayRecords.any { it.timeSlot == TimeSlot.Evening.title }
 
     val currentItems = remember(tasks, todayRecords, selectedTabIndex) {
         val list = if (isSaved) {
-            todayRecords.filter { it.timeSlot == currentTabTitle }.map { record ->
+            todayRecords.filter { it.timeSlot == currentTab.title }.map { record ->
                 Task(
                     name = record.taskName,
                     numberOfTablets = record.taskDetails,
@@ -589,14 +589,14 @@ fun ChecklistPage(
                 )
             }
         } else {
-            tasks.filter { it.times.contains(currentTabTitle) }
+            tasks.filter { it.times.contains(currentTab.title) }
         }
         
         list.sortedByDescending { task ->
             when (task.priority) {
-                "High" -> 3
-                "Medium" -> 2
-                "Low" -> 1
+                Priority.High.title -> 3
+                Priority.Medium.title -> 2
+                Priority.Low.title -> 1
                 else -> 0
             }
         }
@@ -607,11 +607,10 @@ fun ChecklistPage(
             if (isSaved) {
                 item.taskTaken
             } else {
-                when (currentTabTitle) {
-                    "Morning" -> item.isTakenMorning
-                    "Afternoon" -> item.isTakenAfternoon
-                    "Evening" -> item.isTakenEvening
-                    else -> false
+                when (currentTab) {
+                    TimeSlot.Morning -> item.isTakenMorning
+                    TimeSlot.Afternoon -> item.isTakenAfternoon
+                    TimeSlot.Evening -> item.isTakenEvening
                 }
             }
         }
@@ -701,8 +700,8 @@ fun ChecklistPage(
                         } else if (takenCount < currentItems.size) {
                             showPartialSaveDialog = true
                         } else {
-                            viewModel.saveDailyRecords(currentItems, currentTabTitle)
-                            Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
+                            viewModel.saveDailyRecords(currentItems, currentTab)
+                            Toast.makeText(context, "${currentTab.title} records saved!", Toast.LENGTH_SHORT).show()
                         }
                     },
                     enabled = !isSaved && currentItems.isNotEmpty(),
@@ -721,7 +720,7 @@ fun ChecklistPage(
                     Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null) // Descriptive text already provided by button label
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (isSaved) "$currentTabTitle Records Saved" else "Save $currentTabTitle Tasks",
+                        text = if (isSaved) "${currentTab.title} Records Saved" else "Save ${currentTab.title} Tasks",
                         fontSize = 18.sp, 
                         fontWeight = FontWeight.Bold
                     )
@@ -766,7 +765,7 @@ fun ChecklistPage(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomTabButton(
-                    text = "Morning",
+                    text = TimeSlot.Morning.title,
                     isSelected = selectedTabIndex == 0,
                     isCompleted = morningCompleted,
                     onClick = { selectedTabIndex = 0 },
@@ -775,7 +774,7 @@ fun ChecklistPage(
                     modifier = Modifier.weight(1f)
                 )
                 CustomTabButton(
-                    text = "Afternoon",
+                    text = TimeSlot.Afternoon.title,
                     isSelected = selectedTabIndex == 1,
                     isCompleted = afternoonCompleted,
                     onClick = { selectedTabIndex = 1 },
@@ -784,7 +783,7 @@ fun ChecklistPage(
                     modifier = Modifier.weight(1f)
                 )
                 CustomTabButton(
-                    text = "Evening",
+                    text = TimeSlot.Evening.title,
                     isSelected = selectedTabIndex == 2,
                     isCompleted = eveningCompleted,
                     onClick = { selectedTabIndex = 2 },
@@ -809,7 +808,7 @@ fun ChecklistPage(
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     EmptyStateView(
                         icon = Icons.Default.DoneAll,
-                        message = "No tasks scheduled for $currentTabTitle."
+                        message = "No tasks scheduled for ${currentTab.title}."
                     )
                 }
             } else {
@@ -822,17 +821,16 @@ fun ChecklistPage(
                         val isTaken = if (isSaved) {
                             task.taskTaken
                         } else {
-                            when (currentTabTitle) {
-                                "Morning" -> task.isTakenMorning
-                                "Afternoon" -> task.isTakenAfternoon
-                                "Evening" -> task.isTakenEvening
-                                else -> false
+                            when (currentTab) {
+                                TimeSlot.Morning -> task.isTakenMorning
+                                TimeSlot.Afternoon -> task.isTakenAfternoon
+                                TimeSlot.Evening -> task.isTakenEvening
                             }
                         }
                         TaskChecklistCard(
                             task = task,
                             isTaken = isTaken,
-                            onToggle = { if (!isSaved) viewModel.toggleTaskTaken(task, currentTabTitle) }
+                            onToggle = { if (!isSaved) viewModel.toggleTaskTaken(task, currentTab) }
                         )
                     }
                 }
@@ -846,8 +844,8 @@ fun ChecklistPage(
                 text = { Text("Do you want to save without selecting all the tasks?") },
                 confirmButton = {
                     Button(onClick = {
-                        viewModel.saveDailyRecords(currentItems, currentTabTitle)
-                        Toast.makeText(context, "$currentTabTitle records saved!", Toast.LENGTH_SHORT).show()
+                        viewModel.saveDailyRecords(currentItems, currentTab)
+                        Toast.makeText(context, "${currentTab.title} records saved!", Toast.LENGTH_SHORT).show()
                         showPartialSaveDialog = false
                     }) {
                         Text("Yes")
@@ -1101,11 +1099,11 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                     ) {
                         TableHeaderCell("Date", Modifier.weight(1.2f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
-                        TableHeaderCell("Morning", Modifier.weight(1f))
+                        TableHeaderCell(TimeSlot.Morning.title, Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
-                        TableHeaderCell("Afternoon", Modifier.weight(1f))
+                        TableHeaderCell(TimeSlot.Afternoon.title, Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
-                        TableHeaderCell("Evening", Modifier.weight(1f))
+                        TableHeaderCell(TimeSlot.Evening.title, Modifier.weight(1f))
                     }
 
                     val dates = remember(selectedMonthIndex) { 
@@ -1198,11 +1196,11 @@ fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
     ) {
         Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Morning", date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Morning, date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Afternoon", date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Afternoon, date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus("Evening", date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Evening, date, rowRecords, tasks))
     }
 }
 
@@ -1220,7 +1218,7 @@ fun StatusCell(modifier: Modifier, status: StatusType) {
 
 enum class StatusType { Taken, Missed, None, Future }
 
-fun getStatus(slot: String, date: Date, records: List<TaskRecord>, tasks: List<Task>): StatusType {
+fun getStatus(slot: TimeSlot, date: Date, records: List<TaskRecord>, tasks: List<Task>): StatusType {
     val today = Calendar.getInstance()
     today.set(Calendar.HOUR_OF_DAY, 0)
     today.set(Calendar.MINUTE, 0)
@@ -1229,11 +1227,11 @@ fun getStatus(slot: String, date: Date, records: List<TaskRecord>, tasks: List<T
 
     if (date.after(today.time)) return StatusType.Future
 
-    val record = records.find { it.timeSlot == slot }
+    val record = records.find { it.timeSlot == slot.title }
     if (record != null) return StatusType.Taken
 
     return if (date.before(today.time)) {
-        val isScheduled = tasks.any { it.times.contains(slot) }
+        val isScheduled = tasks.any { it.times.contains(slot.title) }
         if (isScheduled) StatusType.None else StatusType.Future
     } else {
         // Today
@@ -1429,9 +1427,9 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
     )
 
     val priorityColor = when (task.priority) {
-        "Low" -> Color(0xFF388E3C)
-        "Medium" -> Color(0xFFFBC02D)
-        "High" -> Color(0xFFD32F2F)
+        Priority.Low.title -> Color(0xFF388E3C)
+        Priority.Medium.title -> Color(0xFFFBC02D)
+        Priority.High.title -> Color(0xFFD32F2F)
         else -> Color.Gray
     }
 
@@ -1520,16 +1518,16 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
 @Composable
 fun AddTaskDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String, String) -> Unit
+    onConfirm: (String, String, String, Priority) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
     var tablets by remember { mutableStateOf("") }
-    val timeOptions = listOf("Morning", "Afternoon", "Evening")
-    val priorityOptions = listOf("Low", "Medium", "High")
-    var selectedTimes by remember { mutableStateOf(setOf<String>()) }
-    var selectedPriority by remember { mutableStateOf("Medium") }
+    val timeOptions = TimeSlot.entries
+    val priorityOptions = Priority.entries
+    var selectedTimes by remember { mutableStateOf(setOf<TimeSlot>()) }
+    var selectedPriority by remember { mutableStateOf(Priority.Medium) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -1617,10 +1615,9 @@ fun AddTaskDialog(
                         priorityOptions.forEach { priority ->
                             val isSelected = selectedPriority == priority
                             val chipColor = when(priority) {
-                                "Low" -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
-                                "Medium" -> if (isSelected) Color(0xFFFBC02D) else Color(0xFFFFF9C4)
-                                "High" -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
-                                else -> BluePrimary
+                                Priority.Low -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
+                                Priority.Medium -> if (isSelected) Color(0xFFFBC02D) else Color(0xFFFFF9C4)
+                                Priority.High -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
                             }
                             
                             Box(
@@ -1637,7 +1634,7 @@ fun AddTaskDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = priority,
+                                    text = priority.title,
                                     color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.8f),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 12.sp
@@ -1663,10 +1660,9 @@ fun AddTaskDialog(
                         timeOptions.forEach { time ->
                             val isSelected = selectedTimes.contains(time)
                             val chipColor = when(time) {
-                                "Morning" -> if (isSelected) Color(0xFF1976D2) else Color(0xFFE3F2FD)
-                                "Afternoon" -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
-                                "Evening" -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
-                                else -> BluePrimary
+                                TimeSlot.Morning -> if (isSelected) Color(0xFF1976D2) else Color(0xFFE3F2FD)
+                                TimeSlot.Afternoon -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
+                                TimeSlot.Evening -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
                             }
                             
                             Box(
@@ -1683,7 +1679,7 @@ fun AddTaskDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = time,
+                                    text = time.title,
                                     color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.8f),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 12.sp
@@ -1698,7 +1694,7 @@ fun AddTaskDialog(
                         onClick = { 
                             keyboardController?.hide()
                             focusManager.clearFocus()
-                            onConfirm(name, tablets, selectedTimes.joinToString(", "), selectedPriority) 
+                            onConfirm(name, tablets, selectedTimes.joinToString(", ") { it.title }, selectedPriority)
                         },
                         enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
                         modifier = Modifier

@@ -90,27 +90,25 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
         return dao.getRecordsForMonth(monthQuery)
     }
 
-    fun toggleTaskTaken(task: Task, timeSlot: String) {
+    fun toggleTaskTaken(task: Task, timeSlot: TimeSlot) {
         viewModelScope.launch {
             val updatedTask = when (timeSlot) {
-                "Morning" -> task.copy(isTakenMorning = !task.isTakenMorning)
-                "Afternoon" -> task.copy(isTakenAfternoon = !task.isTakenAfternoon)
-                "Evening" -> task.copy(isTakenEvening = !task.isTakenEvening)
-                else -> task
+                TimeSlot.Morning -> task.copy(isTakenMorning = !task.isTakenMorning)
+                TimeSlot.Afternoon -> task.copy(isTakenAfternoon = !task.isTakenAfternoon)
+                TimeSlot.Evening -> task.copy(isTakenEvening = !task.isTakenEvening)
             }
             dao.updateTask(updatedTask)
         }
     }
 
-    fun saveDailyRecords(tasks: List<Task>, timeSlot: String) {
+    fun saveDailyRecords(tasks: List<Task>, timeSlot: TimeSlot) {
         viewModelScope.launch {
             val date = _currentDate.value
             tasks.forEach { task ->
                 val wasTaken = when (timeSlot) {
-                    "Morning" -> task.isTakenMorning
-                    "Afternoon" -> task.isTakenAfternoon
-                    "Evening" -> task.isTakenEvening
-                    else -> false
+                    TimeSlot.Morning -> task.isTakenMorning
+                    TimeSlot.Afternoon -> task.isTakenAfternoon
+                    TimeSlot.Evening -> task.isTakenEvening
                 }
                 dao.insertRecord(
                     TaskRecord(
@@ -118,7 +116,7 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
                         taskDetails = task.numberOfTablets,
                         taskPriority = task.priority,
                         date = date,
-                        timeSlot = timeSlot,
+                        timeSlot = timeSlot.title,
                         wasTaken = wasTaken
                     )
                 )
@@ -154,10 +152,10 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
         }
     }
 
-    suspend fun addTask(name: String, tablets: String, times: String, priority: String): Boolean {
+    suspend fun addTask(name: String, tablets: String, times: String, priority: Priority): Boolean {
         val existingTask = dao.getTaskByName(name)
         return if (existingTask == null) {
-            dao.insertTask(Task(name = name, numberOfTablets = tablets, times = times, priority = priority))
+            dao.insertTask(Task(name = name, numberOfTablets = tablets, times = times, priority = priority.title))
             true
         } else {
             false
