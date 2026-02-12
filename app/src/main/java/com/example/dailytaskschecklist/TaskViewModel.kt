@@ -152,7 +152,7 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
         }
     }
 
-    suspend fun addTask(name: String, tablets: String, times: String, priority: Priority): Boolean {
+    suspend fun addTask(name: String, tablets: String, times: List<TimeSlot>, priority: Priority): Boolean {
         val existingTask = dao.getTaskByName(name)
         return if (existingTask == null) {
             dao.insertTask(Task(name = name, numberOfTablets = tablets, times = times, priority = priority.title))

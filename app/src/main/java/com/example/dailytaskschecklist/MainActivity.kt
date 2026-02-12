@@ -400,6 +400,7 @@ fun SplashScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(48.dp))
+            @Suppress("DEPRECATION")
             Text(
                 text = "Tasks Checklist",
                 style = MaterialTheme.typography.headlineMedium,
@@ -410,6 +411,7 @@ fun SplashScreen() {
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
+            @Suppress("DEPRECATION")
             Text(
                 text = "Simple daily task tracking",
                 style = MaterialTheme.typography.titleMedium,
@@ -418,6 +420,7 @@ fun SplashScreen() {
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
+            @Suppress("DEPRECATION")
             Text(
                 text = "Track • Take • Thrive",
                 style = MaterialTheme.typography.titleMedium,
@@ -583,13 +586,13 @@ fun ChecklistPage(
                 Task(
                     name = record.taskName,
                     numberOfTablets = record.taskDetails,
-                    times = record.timeSlot,
+                    times = listOf(currentTab),
                     priority = record.taskPriority,
                     taskTaken = record.wasTaken
                 )
             }
         } else {
-            tasks.filter { it.times.contains(currentTab.title) }
+            tasks.filter { it.times.contains(currentTab) }
         }
         
         list.sortedByDescending { task ->
@@ -1231,7 +1234,7 @@ fun getStatus(slot: TimeSlot, date: Date, records: List<TaskRecord>, tasks: List
     if (record != null) return StatusType.Taken
 
     return if (date.before(today.time)) {
-        val isScheduled = tasks.any { it.times.contains(slot.title) }
+        val isScheduled = tasks.any { it.times.contains(slot) }
         if (isScheduled) StatusType.None else StatusType.Future
     } else {
         // Today
@@ -1399,7 +1402,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     color = TextPrimary
                 )
                 Text(
-                    text = "${task.numberOfTablets} • ${task.times} • ${task.priority}",
+                    text = "${task.numberOfTablets} • ${task.times.joinToString(", ") { it.title }} • ${task.priority}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -1518,7 +1521,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
 @Composable
 fun AddTaskDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String, Priority) -> Unit
+    onConfirm: (String, String, List<TimeSlot>, Priority) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -1694,7 +1697,7 @@ fun AddTaskDialog(
                         onClick = { 
                             keyboardController?.hide()
                             focusManager.clearFocus()
-                            onConfirm(name, tablets, selectedTimes.joinToString(", ") { it.title }, selectedPriority)
+                            onConfirm(name, tablets, selectedTimes.toList(), selectedPriority)
                         },
                         enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
                         modifier = Modifier

@@ -8,7 +8,7 @@ data class Task(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val numberOfTablets: String,
-    val times: String, // Stored as comma-separated values for reference
+    val times: List<TimeSlot>, // Now uses a List for better type safety
     val priority: String = Priority.Medium.title,
     val isTakenMorning: Boolean = false,
     val isTakenAfternoon: Boolean = false,
