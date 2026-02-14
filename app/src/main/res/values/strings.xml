@@ -1,3 +1,86 @@
 <resources>
     <string name="app_name">Tasks Checklist</string>
+
+    <!-- Generic Actions -->
+    <string name="done">Done</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="add_task">Add Task</string>
+    <string name="go_back">Go back</string>
+    <string name="add_to_list">Add to List</string>
+
+    <!-- Titles and Headers -->
+    <string name="manage_tasks">Manage Tasks</string>
+    <string name="delete_task_title">Delete Task</string>
+    <string name="checklist_for">Tasks Checklist for</string>
+    <string name="options">Options</string>
+    <string name="monthly_progress">Monthly Progress</string>
+    <string name="about">About</string>
+    <string name="about_the_app">About the App</string>
+    <string name="version">Version</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="terms_disclaimer">Terms &amp; Disclaimer</string>
+    <string name="contact_support">Contact Support</string>
+    <string name="new_task">New Task</string>
+    <string name="priority">Priority</string>
+    <string name="schedule">Schedule</string>
+    <string name="current_month">Current Month</string>
+    <string name="previous_month">Previous Month</string>
+    <string name="save_tasks">Save Tasks</string>
+
+    <!-- Labels and Placeholders -->
+    <string name="task_name_label">Task Name</string>
+    <string name="task_name_placeholder">e.g. Drink Water</string>
+    <string name="details_label">Details</string>
+    <string name="details_placeholder">e.g. 500ml</string>
+
+    <!-- Content Descriptions -->
+    <string name="add_task_icon">Add task icon</string>
+    <string name="refresh_data">Refresh data</string>
+    <string name="open_options_menu">Open options menu</string>
+    <string name="delete_task_desc">Delete task</string>
+    <string name="task_completed">Task completed</string>
+
+    <!-- Toasts and Dialog Messages -->
+    <string name="task_already_exists">Task \'%1$s\' already exists!</string>
+    <string name="delete_task_confirmation">Are you sure you want to delete %1$s?</string>
+    <string name="data_updated">Data updated for the new day!</string>
+    <string name="already_up_to_date">Already up to date</string>
+    <string name="please_select_a_task">Please select a task</string>
+    <string name="save_partial_records_dialog">Do you want to save without selecting all the tasks?</string>
+    <string name="records_saved">%1$s records saved!</string>
+
+    <!-- Empty State -->
+    <string name="empty_task_list">Your task list is empty.\nTap the button below to add your first task.</string>
+    <string name="no_tasks_for_timeslot">No tasks scheduled for %1$s.</string>
+
+    <!-- Task Details -->
+    <string name="task_details_format">%1$s • %2$s • %3$s</string>
+    <string name="total_tasks">Total number of tasks : %1$d</string>
+    <string name="records_saved_for_timeslot">%1$s Records Saved</string>
+    <string name="save_tasks_for_timeslot">Save %1$s Tasks</string>
+
+    <!-- About Screen Content -->
+    <string name="about_app_content">Tasks Checklist is a simple and easy-to-use app designed to help you stay organized and productive every day. It allows you to create, track, and complete your daily tasks with clarity and consistency.\n\nThe app focuses on simplicity — no unnecessary features, no distractions. You can define your tasks, mark them as completed as you progress through the day, and review your daily or monthly completion status to understand your habits better.\n\nTasks Checklist is ideal for:\n• Managing personal daily routines\n• Tracking work or study-related tasks\n• Building healthy habits\n• Ensuring nothing important is forgotten\n\nAll data is stored locally on your device, ensuring privacy and fast access without requiring an internet connection. The app does not collect or share personal data.\n\nOur goal is to provide a lightweight, reliable checklist experience that helps you focus on what matters most — getting things done, one task at a time.</string>
+    <string name="version_name">App Name: Tasks Checklist</string>
+    <string name="version_number">Version: 1.0.8</string>
+    <string name="privacy_policy_content_1">Last updated: 3rd February 2026\n\nTasks Checklist respects your privacy and is committed to protecting it. This Privacy Policy explains how the app handles information when you use it.\n\nInformation Collection\nTasks Checklist does not collect, store, or transmit any personal information. All tasks, checklist data, and completion history are stored locally on your device only.\n\nThe app does not require you to create an account, log in, or provide personal details such as name, email address, phone number, or location.\n\nData Storage\nAll task data is saved locally on your device using internal app storage. The app does not use cloud storage or external servers. The developer has no access to your tasks or usage data.</string>
+    <string name="privacy_policy_content_2">If you uninstall the app, clear app data, or reset your device, all stored data will be permanently deleted. This data cannot be recovered.\n\nInternet Usage\nTasks Checklist works fully offline. It does not require an internet connection to function and does not transmit data over the network.\n\nThird-Party Services\nThe app does not integrate with:\n• Advertising networks\n• Analytics tools\n• Social media platforms\n• Third-party SDKs that collect personal data\n\nIf such services are added in future versions, this Privacy Policy will be updated accordingly.</string>
+    <string name="privacy_policy_content_3">Children’s Privacy\nTasks Checklist does not knowingly collect any personal information from children under the age of 13. Since no personal data is collected at all, the app is safe for general use.\n\nData Security\nBecause all data is stored locally on your device, data security depends on your device’s security settings. We recommend using standard device protections such as screen locks and secure storage options.\n\nChanges to This Privacy Policy\nThis Privacy Policy may be updated from time to time. Any changes will be reflected within the app. Continued use of the app after changes indicates acceptance of the updated policy.\n\nContact\nIf you have questions or concerns about this Privacy Policy, you may contact the developer through the contact details provided on the app store listing.</string>
+    <string name="terms_disclaimer_content_1">Tasks Checklist is provided as a simple task tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\nIntended Use\nTasks Checklist is intended solely as a tool to help users track and mark their daily tasks in a checklist format.\n\nUser Responsibility\nUsers are fully responsible for:\n• Entering correct task names and schedules\n• Verifying that tasks are completed correctly and on time\n\nThe app should not be relied upon as the sole method for managing routines.</string>
+    <string name="terms_disclaimer_content_2">App Availability &amp; Bugs\nThe app is provided on an “as-is” and “as-available” basis. While reasonable efforts are made to ensure proper functioning, the developer does not guarantee that the app will be error-free, uninterrupted, or free from bugs. The app may occasionally fail due to software issues, device limitations, operating system updates, or other technical reasons.\n\nLimitation of Liability\nTo the fullest extent permitted by law, the developer shall not be held liable for any direct, indirect, incidental, or consequential damages, including but not limited to missed tasks, data loss, or other losses arising from the use of or inability to use this app.\n\nData &amp; Storage\nAll data entered into Tasks Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.</string>
+    <string name="terms_disclaimer_content_3">Data Deletion &amp; Storage Responsibility\nDeleting app data, clearing storage, uninstalling the app, using storage-cleaning tools, or performing device resets will permanently remove all stored information. The developer is not responsible for any data loss resulting from user actions, device settings, system updates, or storage management tools.\n\nChanges to the App\nThe developer reserves the right to modify, update, or discontinue any part of the app at any time without prior notice.\n\nAcceptance of Terms\nBy installing or using Tasks Checklist, you acknowledge that you have read, understood, and agreed to these Terms &amp; Disclaimer.</string>
+    <string name="contact_support_content">If you have any questions, feedback, or need assistance, we’re here to help.\n\nYou can reach out to us for:\n• Reporting bugs or technical issues\n• Suggesting new features\n• General inquiries about the app\n\nYou can contact us at:\ndeveloper.checklist@gmail.com\n\nYou may also reach out through the developer information provided on the app’s store listing. We appreciate your support and aim to respond as quickly as possible.</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_title">Tasks Checklist</string>
+    <string name="splash_subtitle">Simple daily task tracking</string>
+    <string name="splash_tagline">Track • Take • Thrive</string>
+
+    <!-- Table Headers -->
+    <string name="date">Date</string>
+
 </resources>

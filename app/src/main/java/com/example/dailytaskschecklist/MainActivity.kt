@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -49,8 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -241,17 +240,9 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
             )
         }
         Screen.AboutApp -> {
-            SubAboutPage(title = "About the App", onBack = { currentScreen = Screen.About }) {
+            SubAboutPage(title = stringResource(R.string.about_the_app), onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Tasks Checklist is a simple and easy-to-use app designed to help you stay organized and productive every day. It allows you to create, track, and complete your daily tasks with clarity and consistency.\n\n" +
-                           "The app focuses on simplicity — no unnecessary features, no distractions. You can define your tasks, mark them as completed as you progress through the day, and review your daily or monthly completion status to understand your habits better.\n\n" +
-                           "Tasks Checklist is ideal for:\n" +
-                           "• Managing personal daily routines\n" +
-                           "• Tracking work or study-related tasks\n" +
-                           "• Building healthy habits\n" +
-                           "• Ensuring nothing important is forgotten\n\n" +
-                           "All data is stored locally on your device, ensuring privacy and fast access without requiring an internet connection. The app does not collect or share personal data.\n\n" +
-                           "Our goal is to provide a lightweight, reliable checklist experience that helps you focus on what matters most — getting things done, one task at a time.",
+                    text = stringResource(R.string.about_app_content),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -259,39 +250,17 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
             }
         }
         Screen.Version -> {
-            SubAboutPage(title = "Version", onBack = { currentScreen = Screen.About }) {
-                Text("App Name: Tasks Checklist", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Version: 1.0.7", fontSize = 16.sp)
+            SubAboutPage(title = stringResource(R.string.version), onBack = { currentScreen = Screen.About }) {
+                Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(stringResource(R.string.version_number), fontSize = 16.sp)
             }
         }
         Screen.PrivacyPolicy -> {
-            SubAboutPage(title = "Privacy Policy", onBack = { currentScreen = Screen.About }) {
+            SubAboutPage(title = stringResource(R.string.privacy_policy), onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Last updated: 3rd February 2026\n\n" +
-                           "Tasks Checklist respects your privacy and is committed to protecting it. This Privacy Policy explains how the app handles information when you use it.\n\n" +
-                           "Information Collection\n" +
-                           "Tasks Checklist does not collect, store, or transmit any personal information. All tasks, checklist data, and completion history are stored locally on your device only.\n\n" +
-                           "The app does not require you to create an account, log in, or provide personal details such as name, email address, phone number, or location.\n\n" +
-                           "Data Storage\n" +
-                           "All task data is saved locally on your device using internal app storage. The app does not use cloud storage or external servers. The developer has no access to your tasks or usage data.\n\n" +
-                           "If you uninstall the app, clear app data, or reset your device, all stored data will be permanently deleted. This data cannot be recovered.\n\n" +
-                           "Internet Usage\n" +
-                           "Tasks Checklist works fully offline. It does not require an internet connection to function and does not transmit data over the network.\n\n" +
-                           "Third-Party Services\n" +
-                           "The app does not integrate with:\n" +
-                           "• Advertising networks\n" +
-                           "• Analytics tools\n" +
-                           "• Social media platforms\n" +
-                           "• Third-party SDKs that collect personal data\n\n" +
-                           "If such services are added in future versions, this Privacy Policy will be updated accordingly.\n\n" +
-                           "Children’s Privacy\n" +
-                           "Tasks Checklist does not knowingly collect any personal information from children under the age of 13. Since no personal data is collected at all, the app is safe for general use.\n\n" +
-                           "Data Security\n" +
-                           "Because all data is stored locally on your device, data security depends on your device’s security settings. We recommend using standard device protections such as screen locks and secure storage options.\n\n" +
-                           "Changes to This Privacy Policy\n" +
-                           "This Privacy Policy may be updated from time to time. Any changes will be reflected within the app. Continued use of the app after changes indicates acceptance of the updated policy.\n\n" +
-                           "Contact\n" +
-                           "If you have questions or concerns about this Privacy Policy, you may contact the developer through the contact details provided on the app store listing.",
+                    text = stringResource(R.string.privacy_policy_content_1) + "\n\n" +
+                           stringResource(R.string.privacy_policy_content_2) + "\n\n" +
+                           stringResource(R.string.privacy_policy_content_3),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -299,28 +268,11 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
             }
         }
         Screen.TermsDisclaimer -> {
-            SubAboutPage(title = "Terms & Disclaimer", onBack = { currentScreen = Screen.About }) {
+            SubAboutPage(title = stringResource(R.string.terms_disclaimer), onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "Tasks Checklist is provided as a simple task tracking and checklist application. By installing or using this app, you agree to the terms and conditions outlined below.\n\n" +
-                           "Intended Use\n" +
-                           "Tasks Checklist is intended solely as a tool to help users track and mark their daily tasks in a checklist format.\n\n" +
-                           "User Responsibility\n" +
-                           "Users are fully responsible for:\n" +
-                           "• Entering correct task names and schedules\n" +
-                           "• Verifying that tasks are completed correctly and on time\n\n" +
-                           "The app should not be relied upon as the sole method for managing routines.\n\n" +
-                           "App Availability & Bugs\n" +
-                           "The app is provided on an “as-is” and “as-available” basis. While reasonable efforts are made to ensure proper functioning, the developer does not guarantee that the app will be error-free, uninterrupted, or free from bugs. The app may occasionally fail due to software issues, device limitations, operating system updates, or other technical reasons.\n\n" +
-                           "Limitation of Liability\n" +
-                           "To the fullest extent permitted by law, the developer shall not be held liable for any direct, indirect, incidental, or consequential damages, including but not limited to missed tasks, data loss, or other losses arising from the use of or inability to use this app.\n\n" +
-                           "Data & Storage\n" +
-                           "All data entered into Tasks Checklist is stored locally on the user’s device only. The app does not transmit data to external servers or cloud services.\n\n" +
-                           "Data Deletion & Storage Responsibility\n" +
-                           "Deleting app data, clearing storage, uninstalling the app, using storage-cleaning tools, or performing device resets will permanently remove all stored information. The developer is not responsible for any data loss resulting from user actions, device settings, system updates, or storage management tools.\n\n" +
-                           "Changes to the App\n" +
-                           "The developer reserves the right to modify, update, or discontinue any part of the app at any time without prior notice.\n\n" +
-                           "Acceptance of Terms\n" +
-                           "By installing or using Tasks Checklist, you acknowledge that you have read, understood, and agreed to these Terms & Disclaimer.",
+                    text = stringResource(R.string.terms_disclaimer_content_1) + "\n\n" +
+                           stringResource(R.string.terms_disclaimer_content_2) + "\n\n" +
+                           stringResource(R.string.terms_disclaimer_content_3),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -328,16 +280,9 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
             }
         }
         Screen.ContactSupport -> {
-            SubAboutPage(title = "Contact Support", onBack = { currentScreen = Screen.About }) {
+            SubAboutPage(title = stringResource(R.string.contact_support), onBack = { currentScreen = Screen.About }) {
                 Text(
-                    text = "If you have any questions, feedback, or need assistance, we’re here to help.\n\n" +
-                           "You can reach out to us for:\n" +
-                           "• Reporting bugs or technical issues\n" +
-                           "• Suggesting new features\n" +
-                           "• General inquiries about the app\n\n" +
-                           "You can contact us at:\n" +
-                           "developer.checklist@gmail.com\n\n" +
-                           "You may also reach out through the developer information provided on the app’s store listing. We appreciate your support and aim to respond as quickly as possible.",
+                    text = stringResource(R.string.contact_support_content),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextPrimary
@@ -400,9 +345,8 @@ fun SplashScreen() {
                 }
             }
             Spacer(modifier = Modifier.height(48.dp))
-            @Suppress("DEPRECATION")
             Text(
-                text = "Tasks Checklist",
+                text = stringResource(R.string.splash_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = BluePrimary,
@@ -411,18 +355,16 @@ fun SplashScreen() {
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            @Suppress("DEPRECATION")
             Text(
-                text = "Simple daily task tracking",
+                text = stringResource(R.string.splash_subtitle),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = BluePrimary.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
-            @Suppress("DEPRECATION")
             Text(
-                text = "Track • Take • Thrive",
+                text = stringResource(R.string.splash_tagline),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
                 color = BluePrimary.copy(alpha = 0.6f),
@@ -456,13 +398,12 @@ fun AddTaskPage(
 
     Scaffold(
         topBar = {
-            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
-                title = { Text("Manage Tasks", fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.manage_tasks), fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     if (showBackIcon) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
                         }
                     }
                 },
@@ -472,7 +413,7 @@ fun AddTaskPage(
                         enabled = tasks.isNotEmpty()
                     ) {
                         Text(
-                            text = "Done",
+                            text = stringResource(R.string.done),
                             fontWeight = FontWeight.Bold,
                             color = if (tasks.isNotEmpty()) BluePrimary else Color.Gray,
                             fontSize = 18.sp
@@ -484,8 +425,8 @@ fun AddTaskPage(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showAddDialog = true },
-                icon = { Icon(Icons.Default.Add, "Add task icon") },
-                text = { Text("Add Task") },
+                icon = { Icon(Icons.Default.Add, stringResource(R.string.add_task_icon)) },
+                text = { Text(stringResource(R.string.add_task)) },
                 containerColor = BluePrimary,
                 contentColor = Color.White
             )
@@ -499,7 +440,7 @@ fun AddTaskPage(
             if (tasks.isEmpty()) {
                 EmptyStateView(
                     icon = Icons.Default.AddCircle,
-                    message = "Your task list is empty.\nTap the button below to add your first task."
+                    message = stringResource(R.string.empty_task_list)
                 )
             } else {
                 LazyColumn(
@@ -526,7 +467,7 @@ fun AddTaskPage(
                         if (isAdded) {
                             showAddDialog = false
                         } else {
-                            Toast.makeText(context, "Task '$name' already exists!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.task_already_exists, name), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -536,8 +477,8 @@ fun AddTaskPage(
         if (taskToDelete != null) {
             AlertDialog(
                 onDismissRequest = { taskToDelete = null },
-                title = { Text("Delete Task", color = TextHeader) },
-                text = { Text("Are you sure you want to delete ${taskToDelete?.name}?", color = TextPrimary) },
+                title = { Text(stringResource(R.string.delete_task_title), color = TextHeader) },
+                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = TextPrimary) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -546,12 +487,12 @@ fun AddTaskPage(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { taskToDelete = null }) {
-                        Text("Cancel", color = TextSecondary)
+                        Text(stringResource(R.string.cancel), color = TextSecondary)
                     }
                 }
             )
@@ -653,7 +594,6 @@ fun ChecklistPage(
 
     Scaffold(
         topBar = {
-            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
                 title = { },
                 actions = {
@@ -664,15 +604,15 @@ fun ChecklistPage(
                             delay(1000)
                             isRefreshing = false
                             if (didChange) {
-                                Toast.makeText(context, "Data updated for the new day!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.data_updated), Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(context, "Already up to date", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.already_up_to_date), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh data",
+                            contentDescription = stringResource(R.string.refresh_data),
                             tint = TextHeader.copy(alpha = 0.7f),
                             modifier = Modifier.rotate(rotation.value)
                         )
@@ -680,7 +620,7 @@ fun ChecklistPage(
                     IconButton(onClick = onOpenOptions) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Open options menu",
+                            contentDescription = stringResource(R.string.open_options_menu),
                             tint = TextHeader.copy(alpha = 0.7f)
                         )
                     }
@@ -699,12 +639,12 @@ fun ChecklistPage(
                 Button(
                     onClick = { 
                         if (takenCount == 0) {
-                            Toast.makeText(context, "Please select a task", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.please_select_a_task), Toast.LENGTH_SHORT).show()
                         } else if (takenCount < currentItems.size) {
                             showPartialSaveDialog = true
                         } else {
                             viewModel.saveDailyRecords(currentItems, currentTab)
-                            Toast.makeText(context, "${currentTab.title} records saved!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.records_saved, currentTab.title), Toast.LENGTH_SHORT).show()
                         }
                     },
                     enabled = !isSaved && currentItems.isNotEmpty(),
@@ -720,10 +660,10 @@ fun ChecklistPage(
                         disabledContentColor = Color.White.copy(alpha = 0.74f)
                     )
                 ) {
-                    Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null) // Descriptive text already provided by button label
+                    Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (isSaved) "${currentTab.title} Records Saved" else "Save ${currentTab.title} Tasks",
+                        text = if (isSaved) stringResource(R.string.records_saved_for_timeslot, currentTab.title) else stringResource(R.string.save_tasks_for_timeslot, currentTab.title),
                         fontSize = 18.sp, 
                         fontWeight = FontWeight.Bold
                     )
@@ -739,16 +679,14 @@ fun ChecklistPage(
         ) {
             Column(modifier = Modifier.padding(bottom = 12.dp)) {
                 Column {
-                    @Suppress("DEPRECATION")
                     Text(
-                        text = "Tasks Checklist for",
+                        text = stringResource(R.string.checklist_for),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp
                         ),
                         color = TextHeader
                     )
-                    @Suppress("DEPRECATION")
                     Text(
                         text = formatUIDate(currentDateStr),
                         style = MaterialTheme.typography.headlineMedium.copy(
@@ -798,9 +736,8 @@ fun ChecklistPage(
 
             Spacer(modifier = Modifier.height(8.dp))
             
-            @Suppress("DEPRECATION")
             Text(
-                text = "Total number of tasks : ${currentItems.size}",
+                text = stringResource(R.string.total_tasks, currentItems.size),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp),
                 color = TextHeader
             )
@@ -811,7 +748,7 @@ fun ChecklistPage(
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     EmptyStateView(
                         icon = Icons.Default.DoneAll,
-                        message = "No tasks scheduled for ${currentTab.title}."
+                        message = stringResource(R.string.no_tasks_for_timeslot, currentTab.title)
                     )
                 }
             } else {
@@ -843,20 +780,20 @@ fun ChecklistPage(
         if (showPartialSaveDialog) {
             AlertDialog(
                 onDismissRequest = { showPartialSaveDialog = false },
-                title = { Text("Save Tasks") },
-                text = { Text("Do you want to save without selecting all the tasks?") },
+                title = { Text(stringResource(R.string.save_tasks)) },
+                text = { Text(stringResource(R.string.save_partial_records_dialog)) },
                 confirmButton = {
                     Button(onClick = {
                         viewModel.saveDailyRecords(currentItems, currentTab)
-                        Toast.makeText(context, "${currentTab.title} records saved!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.records_saved, currentTab.title), Toast.LENGTH_SHORT).show()
                         showPartialSaveDialog = false
                     }) {
-                        Text("Yes")
+                        Text(stringResource(R.string.yes))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showPartialSaveDialog = false }) {
-                        Text("No")
+                        Text(stringResource(R.string.no))
                     }
                 }
             )
@@ -874,7 +811,6 @@ fun CustomTabButton(
     textColor: Color,
     modifier: Modifier = Modifier
 ) {
-    @Suppress("DEPRECATION")
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -932,12 +868,11 @@ fun OptionsPage(
 ) {
     Scaffold(
         topBar = {
-            @Suppress("DEPRECATION")
             LargeTopAppBar(
-                title = { Text("Options", fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.options), fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
                     }
                 }
             )
@@ -952,19 +887,19 @@ fun OptionsPage(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OptionButton(
-                text = "Monthly Progress",
+                text = stringResource(R.string.monthly_progress),
                 icon = Icons.Default.CalendarMonth,
                 color = BluePrimary,
                 onClick = onNavigateToMonthlyStatus
             )
             OptionButton(
-                text = "Manage Tasks",
+                text = stringResource(R.string.manage_tasks),
                 icon = Icons.Default.AddCircle,
                 color = BluePrimary,
                 onClick = onNavigateToManage
             )
             OptionButton(
-                text = "About",
+                text = stringResource(R.string.about),
                 icon = Icons.Default.Info,
                 color = BluePrimary,
                 onClick = onNavigateToAbout
@@ -1002,13 +937,12 @@ fun OptionButton(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null, // Descriptive text already provided by adjacent Text
+                    contentDescription = null,
                     modifier = Modifier.padding(12.dp),
                     tint = color
                 )
             }
             Spacer(modifier = Modifier.width(20.dp))
-            @Suppress("DEPRECATION")
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleLarge,
@@ -1034,12 +968,11 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
 
     Scaffold(
         topBar = {
-            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
-                title = { Text("Monthly Progress", fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.monthly_progress), fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
@@ -1059,13 +992,13 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatusTabButton(
-                    text = "Current Month",
+                    text = stringResource(R.string.current_month),
                     isSelected = selectedMonthIndex == 0,
                     modifier = Modifier.weight(1f),
                     onClick = { selectedMonthIndex = 0 }
                 )
                 StatusTabButton(
-                    text = "Previous Month",
+                    text = stringResource(R.string.previous_month),
                     isSelected = selectedMonthIndex == 1,
                     modifier = Modifier.weight(1f),
                     onClick = { selectedMonthIndex = 1 }
@@ -1074,7 +1007,6 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
 
             Spacer(modifier = Modifier.height(8.dp))
             
-            @Suppress("DEPRECATION")
             Text(
                 text = monthName,
                 style = MaterialTheme.typography.titleLarge,
@@ -1100,7 +1032,7 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                             .padding(vertical = 12.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TableHeaderCell("Date", Modifier.weight(1.2f))
+                        TableHeaderCell(stringResource(R.string.date), Modifier.weight(1.2f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell(TimeSlot.Morning.title, Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
@@ -1211,7 +1143,7 @@ fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
 fun StatusCell(modifier: Modifier, status: StatusType) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         when (status) {
-            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = "Task completed", tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
+            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = stringResource(R.string.task_completed), tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
             StatusType.None -> Text("-", color = Color.LightGray, fontWeight = FontWeight.Bold)
             StatusType.Future -> { /* Empty */ }
             else -> { /* No Cross used */ }
@@ -1272,12 +1204,11 @@ fun AboutPage(
 ) {
     Scaffold(
         topBar = {
-            @Suppress("DEPRECATION")
             LargeTopAppBar(
-                title = { Text("About", fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.about), fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
                     }
                 }
             )
@@ -1291,11 +1222,11 @@ fun AboutPage(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AboutOptionItem(text = "About the App", onClick = onNavigateToAboutApp)
-            AboutOptionItem(text = "Version", onClick = onNavigateToVersion)
-            AboutOptionItem(text = "Privacy Policy", onClick = onNavigateToPrivacy)
-            AboutOptionItem(text = "Terms & Disclaimer", onClick = onNavigateToTerms)
-            AboutOptionItem(text = "Contact Support", onClick = onNavigateToContact)
+            AboutOptionItem(text = stringResource(R.string.about_the_app), onClick = onNavigateToAboutApp)
+            AboutOptionItem(text = stringResource(R.string.version), onClick = onNavigateToVersion)
+            AboutOptionItem(text = stringResource(R.string.privacy_policy), onClick = onNavigateToPrivacy)
+            AboutOptionItem(text = stringResource(R.string.terms_disclaimer), onClick = onNavigateToTerms)
+            AboutOptionItem(text = stringResource(R.string.contact_support), onClick = onNavigateToContact)
         }
     }
 }
@@ -1326,7 +1257,7 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
             )
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = null, // Purely decorative
+                contentDescription = null, 
                 tint = Color.LightGray
             )
         }
@@ -1338,12 +1269,11 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
 fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     Scaffold(
         topBar = {
-            @Suppress("DEPRECATION")
             CenterAlignedTopAppBar(
                 title = { Text(title, fontWeight = FontWeight.Bold, color = TextHeader) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Go back", tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
                     }
                 }
             )
@@ -1388,13 +1318,12 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
             ) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
-                    contentDescription = null, // Decorative icon
+                    contentDescription = null,
                     tint = BluePrimary
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                @Suppress("DEPRECATION")
                 Text(
                     text = task.name,
                     style = MaterialTheme.typography.titleLarge,
@@ -1402,7 +1331,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     color = TextPrimary
                 )
                 Text(
-                    text = "${task.numberOfTablets} • ${task.times.joinToString(", ") { it.title }} • ${task.priority}",
+                    text = stringResource(R.string.task_details_format, task.numberOfTablets, task.times.joinToString(", ") { it.title }, task.priority),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -1413,7 +1342,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     contentColor = MaterialTheme.colorScheme.error
                 )
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete task", tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_task_desc), tint = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -1464,7 +1393,6 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
                 )
             )
             
-            // Priority Standing Line
             Box(
                 modifier = Modifier
                     .width(4.dp)
@@ -1504,7 +1432,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null, // Decorative background icon
+            contentDescription = null,
             modifier = Modifier.size(84.dp),
             tint = BluePrimary.copy(alpha = 0.3f)
         )
@@ -1550,7 +1478,6 @@ fun AddTaskDialog(
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            @Suppress("DEPRECATION")
             Column(
                 modifier = Modifier
                     .padding(24.dp)
@@ -1560,7 +1487,7 @@ fun AddTaskDialog(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "New Task",
+                        text = stringResource(R.string.new_task),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = TextHeader
@@ -1571,8 +1498,8 @@ fun AddTaskDialog(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Task Name") },
-                        placeholder = { Text("e.g. Drink Water") },
+                        label = { Text(stringResource(R.string.task_name_label)) },
+                        placeholder = { Text(stringResource(R.string.task_name_placeholder)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1586,8 +1513,8 @@ fun AddTaskDialog(
                     OutlinedTextField(
                         value = tablets,
                         onValueChange = { tablets = it },
-                        label = { Text("Details") },
-                        placeholder = { Text("e.g. 500ml") },
+                        label = { Text(stringResource(R.string.details_label)) },
+                        placeholder = { Text(stringResource(R.string.details_placeholder)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1605,7 +1532,7 @@ fun AddTaskDialog(
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Priority",
+                        text = stringResource(R.string.priority),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = TextHeader
@@ -1650,7 +1577,7 @@ fun AddTaskDialog(
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
                     @Suppress("DEPRECATION")
                     Text(
-                        text = "Schedule",
+                        text = stringResource(R.string.schedule),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = TextHeader
@@ -1709,7 +1636,7 @@ fun AddTaskDialog(
                             contentColor = Color.White
                         )
                     ) {
-                        Text("Add to List", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.add_to_list), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                     TextButton(
                         onClick = {
@@ -1719,7 +1646,7 @@ fun AddTaskDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Cancel", color = TextSecondary, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.cancel), color = TextSecondary, fontWeight = FontWeight.Medium)
                     }
                 }
             }
