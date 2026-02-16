@@ -980,7 +980,7 @@ fun OptionsPage(
                 },
                 confirmButton = {
                     TextButton(onClick = { showThemeDialog = false }) {
-                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black)
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.surface
@@ -1761,7 +1761,7 @@ fun AddTaskDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontWeight = FontWeight.Medium)
                     }
                 }
             }
