@@ -186,7 +186,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
     }
 
     when (currentScreen) {
-        Screen.Splash -> SplashScreen()
+        Screen.Splash -> SplashScreen(viewModel)
         Screen.AddTask -> {
             AddTaskPage(
                 viewModel = viewModel,
@@ -296,7 +296,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
 }
 
 @Composable
-fun SplashScreen() {
+fun SplashScreen(viewModel: TaskViewModel) {
     val infiniteTransition = rememberInfiniteTransition(label = "splash")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 0.98f,
@@ -308,10 +308,13 @@ fun SplashScreen() {
         label = "pulse"
     )
 
+    val themePref = viewModel.themePreference.collectAsState().value
+    val isDark = themePref == ThemePreference.Dark || (themePref == ThemePreference.Default && isSystemInDarkTheme())
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFCBE6FF)),
+            .background(if (isDark) AppBackgroundDark else AppBackground),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -352,7 +355,7 @@ fun SplashScreen() {
                 text = stringResource(R.string.splash_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
-                color = BluePrimary,
+                color = if (isDark) BluePrimaryDark else BluePrimary,
                 letterSpacing = 1.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
@@ -362,7 +365,7 @@ fun SplashScreen() {
                 text = stringResource(R.string.splash_subtitle),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = BluePrimary.copy(alpha = 0.8f),
+                color = (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -370,7 +373,7 @@ fun SplashScreen() {
                 text = stringResource(R.string.splash_tagline),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
-                color = BluePrimary.copy(alpha = 0.6f),
+                color = (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.6f),
                 letterSpacing = 4.sp
             )
             Spacer(modifier = Modifier.height(64.dp))
@@ -378,8 +381,8 @@ fun SplashScreen() {
                 modifier = Modifier
                     .width(180.dp)
                     .clip(CircleShape),
-                color = BluePrimary,
-                trackColor = BluePrimary.copy(alpha = 0.1f)
+                color = if (isDark) BluePrimaryDark else BluePrimary,
+                trackColor = (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.1f)
             )
         }
     }
@@ -411,6 +414,8 @@ fun AddTaskPage(
                     }
                 },
                 actions = {
+                    val themePref = viewModel.themePreference.collectAsState().value
+                    val isDark = themePref == ThemePreference.Dark || (themePref == ThemePreference.Default && isSystemInDarkTheme())
                     TextButton(
                         onClick = onDone,
                         enabled = tasks.isNotEmpty()
@@ -418,7 +423,7 @@ fun AddTaskPage(
                         Text(
                             text = stringResource(R.string.done),
                             fontWeight = FontWeight.Bold,
-                            color = if (tasks.isNotEmpty()) BluePrimary else Color.Gray,
+                            color = if (tasks.isNotEmpty()) (if (isDark) BluePrimaryDark else BluePrimary) else Color.Gray,
                             fontSize = 18.sp
                         )
                     }
@@ -667,10 +672,10 @@ fun ChecklistPage(
                     shape = RoundedCornerShape(16.dp),
                     elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 4.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSaved) Color.Gray else BluePrimary,
-                        contentColor = Color.White,
-                        disabledContainerColor = if (isSaved) Color.Gray else BluePrimary.copy(alpha = 0.38f),
-                        disabledContentColor = Color.White.copy(alpha = 0.74f)
+                        containerColor = if (isSaved) Color.Gray else (if (isDark) BluePrimaryDark else BluePrimary),
+                        contentColor = if (isDark) Color.Black else Color.White,
+                        disabledContainerColor = if (isSaved) Color.Gray else (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.38f),
+                        disabledContentColor = (if (isDark) Color.Black else Color.White).copy(alpha = 0.74f)
                     )
                 ) {
                     Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
