@@ -85,9 +85,9 @@
 
     <!-- Theme Selection -->
     <string name="theme">Theme</string>
-    <string name="light_mode">Light Mode</string>
-    <string name="dark_mode">Dark Mode</string>
-    <string name="default_mode">Default Mode</string>
+    <string name="light_mode">Light Theme</string>
+    <string name="dark_mode">Dark Theme</string>
+    <string name="default_mode">Default Theme</string>
     <string name="select_theme">Select Theme</string>
 
 </resources>

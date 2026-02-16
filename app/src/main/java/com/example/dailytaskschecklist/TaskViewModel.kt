@@ -40,11 +40,11 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     }
 
     private fun getSavedThemePreference(): ThemePreference {
-        val themeName = sharedPref.getString("theme_preference", ThemePreference.Light.name)
+        val themeName = sharedPref.getString("theme_preference", ThemePreference.Default.name)
         return try {
-            ThemePreference.valueOf(themeName ?: ThemePreference.Light.name)
+            ThemePreference.valueOf(themeName ?: ThemePreference.Default.name)
         } catch (e: Exception) {
-            ThemePreference.Light
+            ThemePreference.Default
         }
     }
 
