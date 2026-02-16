@@ -30,6 +30,7 @@ val StatusGreen = Color(0xFF22C55E)
 
 // Light Blue Background matching Splash Screen
 val AppBackground = Color(0xFFCBE6FF)
+val AppBackgroundDark = Color(0xFF001E30)
 
 // Dark Theme Variants
 val BluePrimaryDark = Color(0xFF8FCDFF)

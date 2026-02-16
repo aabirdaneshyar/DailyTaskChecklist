@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.example.dailytaskschecklist.ThemePreference
 
 private val DarkColorScheme = darkColorScheme(
     primary = BluePrimaryDark,
@@ -18,7 +19,9 @@ private val DarkColorScheme = darkColorScheme(
     secondary = BlueSecondaryDark,
     onSecondary = BlueOnSecondaryDark,
     tertiary = BlueTertiaryDark,
-    onTertiary = BlueOnTertiaryDark
+    onTertiary = BlueOnTertiaryDark,
+    background = AppBackgroundDark,
+    surface = AppBackgroundDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -40,11 +43,17 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun DailyTasksChecklistTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themePreference: ThemePreference = ThemePreference.Default,
     // Disable dynamic color to ensure consistent theme
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val darkTheme = when (themePreference) {
+        ThemePreference.Light -> false
+        ThemePreference.Dark -> true
+        ThemePreference.Default -> isSystemInDarkTheme()
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

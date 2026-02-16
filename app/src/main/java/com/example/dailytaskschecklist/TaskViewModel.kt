@@ -23,6 +23,9 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     private val _currentDate = MutableStateFlow(SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()))
     val currentDate: StateFlow<String> = _currentDate.asStateFlow()
 
+    private val _themePreference = MutableStateFlow(getSavedThemePreference())
+    val themePreference: StateFlow<ThemePreference> = _themePreference.asStateFlow()
+
     val todayRecords: StateFlow<List<TaskRecord>> = _currentDate
         .flatMapLatest { date -> dao.getRecordsForDate(date) }
         .stateIn(
@@ -34,6 +37,20 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     init {
         // Initial check on cold start
         checkAndResetForNewDay()
+    }
+
+    private fun getSavedThemePreference(): ThemePreference {
+        val themeName = sharedPref.getString("theme_preference", ThemePreference.Default.name)
+        return try {
+            ThemePreference.valueOf(themeName ?: ThemePreference.Default.name)
+        } catch (e: Exception) {
+            ThemePreference.Default
+        }
+    }
+
+    fun setThemePreference(preference: ThemePreference) {
+        sharedPref.edit().putString("theme_preference", preference.name).apply()
+        _themePreference.value = preference
     }
 
     /**

@@ -80,12 +80,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DailyTasksChecklistTheme {
-                val context = LocalContext.current
-                val database = AppDatabase.getDatabase(context)
-                val viewModel: TaskViewModel = viewModel(
-                    factory = TaskViewModelFactory(database.taskDao(), context.applicationContext)
-                )
+            val context = LocalContext.current
+            val database = AppDatabase.getDatabase(context)
+            val viewModel: TaskViewModel = viewModel(
+                factory = TaskViewModelFactory(database.taskDao(), context.applicationContext)
+            )
+            val themePreference by viewModel.themePreference.collectAsState()
+
+            DailyTasksChecklistTheme(themePreference = themePreference) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -213,6 +215,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         }
         Screen.Options -> {
             OptionsPage(
+                viewModel = viewModel,
                 onNavigateToManage = { 
                     isFromOptions = true
                     currentScreen = Screen.AddTask 
@@ -251,8 +254,8 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         }
         Screen.Version -> {
             SubAboutPage(title = stringResource(R.string.version), onBack = { currentScreen = Screen.About }) {
-                Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(stringResource(R.string.version_number), fontSize = 16.sp)
+                Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextPrimary)
+                Text(stringResource(R.string.version_number), fontSize = 16.sp, color = TextPrimary)
             }
         }
         Screen.PrivacyPolicy -> {
@@ -494,7 +497,8 @@ fun AddTaskPage(
                     TextButton(onClick = { taskToDelete = null }) {
                         Text(stringResource(R.string.cancel), color = TextSecondary)
                     }
-                }
+                },
+                containerColor = Color.White
             )
         }
     }
@@ -861,11 +865,15 @@ fun CustomTabButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OptionsPage(
+    viewModel: TaskViewModel,
     onNavigateToManage: () -> Unit,
     onNavigateToMonthlyStatus: () -> Unit,
     onNavigateToAbout: () -> Unit,
     onBack: () -> Unit
 ) {
+    var showThemeDialog by remember { mutableStateOf(false) }
+    val themePreference by viewModel.themePreference.collectAsState()
+
     Scaffold(
         topBar = {
             LargeTopAppBar(
@@ -899,12 +907,74 @@ fun OptionsPage(
                 onClick = onNavigateToManage
             )
             OptionButton(
+                text = stringResource(R.string.theme),
+                icon = Icons.Default.Palette,
+                color = BluePrimary,
+                onClick = { showThemeDialog = true }
+            )
+            OptionButton(
                 text = stringResource(R.string.about),
                 icon = Icons.Default.Info,
                 color = BluePrimary,
                 onClick = onNavigateToAbout
             )
         }
+
+        if (showThemeDialog) {
+            AlertDialog(
+                onDismissRequest = { showThemeDialog = false },
+                title = { Text(stringResource(R.string.select_theme)) },
+                text = {
+                    Column {
+                        ThemeOptionItem(
+                            text = stringResource(R.string.light_mode),
+                            isSelected = themePreference == ThemePreference.Light,
+                            onClick = {
+                                viewModel.setThemePreference(ThemePreference.Light)
+                                showThemeDialog = false
+                            }
+                        )
+                        ThemeOptionItem(
+                            text = stringResource(R.string.dark_mode),
+                            isSelected = themePreference == ThemePreference.Dark,
+                            onClick = {
+                                viewModel.setThemePreference(ThemePreference.Dark)
+                                showThemeDialog = false
+                            }
+                        )
+                        ThemeOptionItem(
+                            text = stringResource(R.string.default_theme),
+                            isSelected = themePreference == ThemePreference.Default,
+                            onClick = {
+                                viewModel.setThemePreference(ThemePreference.Default)
+                                showThemeDialog = false
+                            }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showThemeDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                },
+                containerColor = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = isSelected, onClick = onClick)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
@@ -1486,6 +1556,7 @@ fun AddTaskDialog(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    @Suppress("DEPRECATION")
                     Text(
                         text = stringResource(R.string.new_task),
                         style = MaterialTheme.typography.headlineSmall,
