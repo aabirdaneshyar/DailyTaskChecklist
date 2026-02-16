@@ -248,14 +248,14 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                     text = stringResource(R.string.about_app_content),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
         Screen.Version -> {
             SubAboutPage(title = stringResource(R.string.version), onBack = { currentScreen = Screen.About }) {
-                Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextPrimary)
-                Text(stringResource(R.string.version_number), fontSize = 16.sp, color = TextPrimary)
+                Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text(stringResource(R.string.version_number), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
         Screen.PrivacyPolicy -> {
@@ -266,7 +266,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                            stringResource(R.string.privacy_policy_content_3),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -278,7 +278,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                            stringResource(R.string.terms_disclaimer_content_3),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -288,7 +288,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                     text = stringResource(R.string.contact_support_content),
                     textAlign = TextAlign.Justify,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -402,11 +402,11 @@ fun AddTaskPage(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.manage_tasks), fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.manage_tasks), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     if (showBackIcon) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                         }
                     }
                 },
@@ -480,8 +480,8 @@ fun AddTaskPage(
         if (taskToDelete != null) {
             AlertDialog(
                 onDismissRequest = { taskToDelete = null },
-                title = { Text(stringResource(R.string.delete_task_title), color = TextHeader) },
-                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = TextPrimary) },
+                title = { Text(stringResource(R.string.delete_task_title), color = Color.Black) },
+                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = Color.Black) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -495,7 +495,7 @@ fun AddTaskPage(
                 },
                 dismissButton = {
                     TextButton(onClick = { taskToDelete = null }) {
-                        Text(stringResource(R.string.cancel), color = TextSecondary)
+                        Text(stringResource(R.string.cancel), color = Color.Gray)
                     }
                 },
                 containerColor = Color.White
@@ -617,7 +617,7 @@ fun ChecklistPage(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = stringResource(R.string.refresh_data),
-                            tint = TextHeader.copy(alpha = 0.7f),
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                             modifier = Modifier.rotate(rotation.value)
                         )
                     }
@@ -625,7 +625,7 @@ fun ChecklistPage(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(R.string.open_options_menu),
-                            tint = TextHeader.copy(alpha = 0.7f)
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                         )
                     }
                 },
@@ -689,7 +689,7 @@ fun ChecklistPage(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 20.sp
                         ),
-                        color = TextHeader
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = formatUIDate(currentDateStr),
@@ -697,7 +697,7 @@ fun ChecklistPage(
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 24.sp
                         ),
-                        color = TextHeader
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -743,7 +743,7 @@ fun ChecklistPage(
             Text(
                 text = stringResource(R.string.total_tasks, currentItems.size),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp),
-                color = TextHeader
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -784,8 +784,8 @@ fun ChecklistPage(
         if (showPartialSaveDialog) {
             AlertDialog(
                 onDismissRequest = { showPartialSaveDialog = false },
-                title = { Text(stringResource(R.string.save_tasks)) },
-                text = { Text(stringResource(R.string.save_partial_records_dialog)) },
+                title = { Text(stringResource(R.string.save_tasks), color = Color.Black) },
+                text = { Text(stringResource(R.string.save_partial_records_dialog), color = Color.Black) },
                 confirmButton = {
                     Button(onClick = {
                         viewModel.saveDailyRecords(currentItems, currentTab)
@@ -799,7 +799,8 @@ fun ChecklistPage(
                     TextButton(onClick = { showPartialSaveDialog = false }) {
                         Text(stringResource(R.string.no))
                     }
-                }
+                },
+                containerColor = Color.White
             )
         }
     }
@@ -877,10 +878,10 @@ fun OptionsPage(
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.options), fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.options), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             )
@@ -923,7 +924,7 @@ fun OptionsPage(
         if (showThemeDialog) {
             AlertDialog(
                 onDismissRequest = { showThemeDialog = false },
-                title = { Text(stringResource(R.string.select_theme)) },
+                title = { Text(stringResource(R.string.select_theme), color = Color.Black) },
                 text = {
                     Column {
                         ThemeOptionItem(
@@ -954,7 +955,7 @@ fun OptionsPage(
                 },
                 confirmButton = {
                     TextButton(onClick = { showThemeDialog = false }) {
-                        Text(stringResource(R.string.cancel))
+                        Text(stringResource(R.string.cancel), color = Color.Gray)
                     }
                 },
                 containerColor = Color.White
@@ -972,9 +973,16 @@ fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(selected = isSelected, onClick = onClick)
+        RadioButton(
+            selected = isSelected, 
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = BluePrimary,
+                unselectedColor = Color.Gray
+            )
+        )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyLarge)
+        Text(text = text, style = MaterialTheme.typography.bodyLarge, color = Color.Black)
     }
 }
 
@@ -1039,16 +1047,16 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.monthly_progress), fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.monthly_progress), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = AppBackground
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -1081,7 +1089,7 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                 text = monthName,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = TextHeader,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -1091,7 +1099,7 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
             Card(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().weight(1f),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column {
@@ -1134,7 +1142,7 @@ fun StatusTabButton(
     modifier: Modifier = Modifier
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) BluePrimary else Color.White,
+        targetValue = if (isSelected) BluePrimary else MaterialTheme.colorScheme.surface,
         label = "backgroundColorAnim"
     )
     val contentColor by animateColorAsState(
@@ -1199,7 +1207,7 @@ fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = TextPrimary)
+        Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
         StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Morning, date, rowRecords, tasks))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
@@ -1214,7 +1222,7 @@ fun StatusCell(modifier: Modifier, status: StatusType) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         when (status) {
             StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = stringResource(R.string.task_completed), tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
-            StatusType.None -> Text("-", color = Color.LightGray, fontWeight = FontWeight.Bold)
+            StatusType.None -> Text("-", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
             StatusType.Future -> { /* Empty */ }
             else -> { /* No Cross used */ }
         }
@@ -1275,10 +1283,10 @@ fun AboutPage(
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.about), fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(stringResource(R.string.about), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             )
@@ -1340,10 +1348,10 @@ fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnS
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(title, fontWeight = FontWeight.Bold, color = TextHeader) },
+                title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = TextHeader)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             )
@@ -1510,7 +1518,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
         )
     }
