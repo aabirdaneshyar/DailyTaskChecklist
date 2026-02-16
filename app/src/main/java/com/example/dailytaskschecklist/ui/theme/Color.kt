@@ -28,9 +28,10 @@ val TextInactive = Color(0xFF9CA3AF)
 val StatusRed = Color(0xFFEF4444)
 val StatusGreen = Color(0xFF22C55E)
 
-// Light Blue Background matching Splash Screen
+// Theme Colors
 val AppBackground = Color(0xFFCBE6FF)
-val AppBackgroundDark = Color(0xFF001E30)
+val AppBackgroundDark = Color(0xFF121212)
+val SurfaceDark = Color(0xFF1E1E1E)
 
 // Dark Theme Variants
 val BluePrimaryDark = Color(0xFF8FCDFF)
@@ -42,3 +43,12 @@ val BlueOnSecondaryDark = Color(0xFF22323F)
 
 val BlueTertiaryDark = Color(0xFFCFC0E8)
 val BlueOnTertiaryDark = Color(0xFF352B4D)
+
+// Toned down status colors for Dark Mode
+val MorningBlueDark = Color(0xFF64B5F6)
+val AfternoonGreenDark = Color(0xFF81C784)
+val EveningRedDark = Color(0xFFE57373)
+
+val LowPriorityDark = Color(0xFF81C784)
+val MediumPriorityDark = Color(0xFFFFF176)
+val HighPriorityDark = Color(0xFFE57373)

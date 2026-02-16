@@ -463,6 +463,7 @@ fun AddTaskPage(
 
         if (showAddDialog) {
             AddTaskDialog(
+                viewModel = viewModel,
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name, tablets, times, priority ->
                     scope.launch {
@@ -478,27 +479,32 @@ fun AddTaskPage(
         }
 
         if (taskToDelete != null) {
+            val themePref = viewModel.themePreference.collectAsState().value
+            val isDark = themePref == ThemePreference.Dark || (themePref == ThemePreference.Default && isSystemInDarkTheme())
             AlertDialog(
                 onDismissRequest = { taskToDelete = null },
-                title = { Text(stringResource(R.string.delete_task_title), color = Color.Black) },
-                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = Color.Black) },
+                title = { Text(stringResource(R.string.delete_task_title), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black) },
+                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black) },
                 confirmButton = {
                     Button(
                         onClick = {
                             taskToDelete?.let { viewModel.deleteTask(it) }
                             taskToDelete = null
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFB71C1C),
+                            contentColor = Color.White
+                        )
                     ) {
                         Text(stringResource(R.string.delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { taskToDelete = null }) {
-                        Text(stringResource(R.string.cancel), color = Color.Gray)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray)
                     }
                 },
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
     }
@@ -524,6 +530,9 @@ fun ChecklistPage(
     val morningCompleted = todayRecords.any { it.timeSlot == TimeSlot.Morning.title }
     val afternoonCompleted = todayRecords.any { it.timeSlot == TimeSlot.Afternoon.title }
     val eveningCompleted = todayRecords.any { it.timeSlot == TimeSlot.Evening.title }
+
+    val themePref = viewModel.themePreference.collectAsState().value
+    val isDark = themePref == ThemePreference.Dark || (themePref == ThemePreference.Default && isSystemInDarkTheme())
 
     val currentItems = remember(tasks, todayRecords, selectedTabIndex) {
         val list = if (isSaved) {
@@ -714,8 +723,8 @@ fun ChecklistPage(
                     isSelected = selectedTabIndex == 0,
                     isCompleted = morningCompleted,
                     onClick = { selectedTabIndex = 0 },
-                    bgColor = Color(0xFFE3F2FD),
-                    textColor = Color(0xFF1976D2),
+                    bgColor = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFE3F2FD),
+                    textColor = if (isDark) MorningBlueDark else Color(0xFF1976D2),
                     modifier = Modifier.weight(1f)
                 )
                 CustomTabButton(
@@ -723,8 +732,8 @@ fun ChecklistPage(
                     isSelected = selectedTabIndex == 1,
                     isCompleted = afternoonCompleted,
                     onClick = { selectedTabIndex = 1 },
-                    bgColor = Color(0xFFF1F8E9),
-                    textColor = Color(0xFF388E3C),
+                    bgColor = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFF1F8E9),
+                    textColor = if (isDark) AfternoonGreenDark else Color(0xFF388E3C),
                     modifier = Modifier.weight(1f)
                 )
                 CustomTabButton(
@@ -732,8 +741,8 @@ fun ChecklistPage(
                     isSelected = selectedTabIndex == 2,
                     isCompleted = eveningCompleted,
                     onClick = { selectedTabIndex = 2 },
-                    bgColor = Color(0xFFFBE9E7),
-                    textColor = Color(0xFFD32F2F),
+                    bgColor = if (isDark) MaterialTheme.colorScheme.surface else Color(0xFFFBE9E7),
+                    textColor = if (isDark) EveningRedDark else Color(0xFFD32F2F),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -774,7 +783,8 @@ fun ChecklistPage(
                         TaskChecklistCard(
                             task = task,
                             isTaken = isTaken,
-                            onToggle = { if (!isSaved) viewModel.toggleTaskTaken(task, currentTab) }
+                            onToggle = { if (!isSaved) viewModel.toggleTaskTaken(task, currentTab) },
+                            isDark = isDark
                         )
                     }
                 }
@@ -784,8 +794,8 @@ fun ChecklistPage(
         if (showPartialSaveDialog) {
             AlertDialog(
                 onDismissRequest = { showPartialSaveDialog = false },
-                title = { Text(stringResource(R.string.save_tasks), color = Color.Black) },
-                text = { Text(stringResource(R.string.save_partial_records_dialog), color = Color.Black) },
+                title = { Text(stringResource(R.string.save_tasks), color = MaterialTheme.colorScheme.onSurface) },
+                text = { Text(stringResource(R.string.save_partial_records_dialog), color = MaterialTheme.colorScheme.onSurface) },
                 confirmButton = {
                     Button(onClick = {
                         viewModel.saveDailyRecords(currentItems, currentTab)
@@ -800,7 +810,7 @@ fun ChecklistPage(
                         Text(stringResource(R.string.no))
                     }
                 },
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
     }
@@ -832,7 +842,7 @@ fun CustomTabButton(
                 .fillMaxWidth()
                 .height(48.dp)
                 .shadow(if (isSelected) 2.dp else 1.dp, RoundedCornerShape(24.dp))
-                .background(Color.White, RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
                 .background(bgColor.copy(alpha = if (isSelected) 1f else 0.3f), RoundedCornerShape(24.dp))
                 .clip(RoundedCornerShape(24.dp))
                 .clickable { onClick() },
@@ -874,6 +884,7 @@ fun OptionsPage(
 ) {
     var showThemeDialog by remember { mutableStateOf(false) }
     val themePreference by viewModel.themePreference.collectAsState()
+    val isDark = isSystemInDarkTheme() || themePreference == ThemePreference.Dark
 
     Scaffold(
         topBar = {
@@ -899,32 +910,36 @@ fun OptionsPage(
                 text = stringResource(R.string.monthly_progress),
                 icon = Icons.Default.CalendarMonth,
                 color = BluePrimary,
-                onClick = onNavigateToMonthlyStatus
+                onClick = onNavigateToMonthlyStatus,
+                isDark = isDark
             )
             OptionButton(
                 text = stringResource(R.string.manage_tasks),
                 icon = Icons.Default.AddCircle,
                 color = BluePrimary,
-                onClick = onNavigateToManage
+                onClick = onNavigateToManage,
+                isDark = isDark
             )
             OptionButton(
                 text = stringResource(R.string.theme),
                 icon = Icons.Default.Palette,
                 color = BluePrimary,
-                onClick = { showThemeDialog = true }
+                onClick = { showThemeDialog = true },
+                isDark = isDark
             )
             OptionButton(
                 text = stringResource(R.string.about),
                 icon = Icons.Default.Info,
                 color = BluePrimary,
-                onClick = onNavigateToAbout
+                onClick = onNavigateToAbout,
+                isDark = isDark
             )
         }
 
         if (showThemeDialog) {
             AlertDialog(
                 onDismissRequest = { showThemeDialog = false },
-                title = { Text(stringResource(R.string.select_theme), color = Color.Black) },
+                title = { Text(stringResource(R.string.select_theme), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black) },
                 text = {
                     Column {
                         ThemeOptionItem(
@@ -933,7 +948,8 @@ fun OptionsPage(
                             onClick = {
                                 viewModel.setThemePreference(ThemePreference.Light)
                                 showThemeDialog = false
-                            }
+                            },
+                            isDark = isDark
                         )
                         ThemeOptionItem(
                             text = stringResource(R.string.dark_mode),
@@ -941,31 +957,33 @@ fun OptionsPage(
                             onClick = {
                                 viewModel.setThemePreference(ThemePreference.Dark)
                                 showThemeDialog = false
-                            }
+                            },
+                            isDark = isDark
                         )
                         ThemeOptionItem(
-                            text = stringResource(R.string.default_theme),
+                            text = stringResource(R.string.default_mode),
                             isSelected = themePreference == ThemePreference.Default,
                             onClick = {
                                 viewModel.setThemePreference(ThemePreference.Default)
                                 showThemeDialog = false
-                            }
+                            },
+                            isDark = isDark
                         )
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = { showThemeDialog = false }) {
-                        Text(stringResource(R.string.cancel), color = Color.Gray)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray)
                     }
                 },
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
     }
 }
 
 @Composable
-fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
+fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit, isDark: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -978,11 +996,11 @@ fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit) {
             onClick = onClick,
             colors = RadioButtonDefaults.colors(
                 selectedColor = BluePrimary,
-                unselectedColor = Color.Gray
+                unselectedColor = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray
             )
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyLarge, color = Color.Black)
+        Text(text = text, style = MaterialTheme.typography.bodyLarge, color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black)
     }
 }
 
@@ -991,7 +1009,8 @@ fun OptionButton(
     text: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     color: Color,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isDark: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -999,7 +1018,7 @@ fun OptionButton(
             .height(100.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -1025,7 +1044,7 @@ fun OptionButton(
                 text = text,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = TextPrimary
+                color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black
             )
         }
     }
@@ -1317,7 +1336,7 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
             .height(64.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -1331,7 +1350,7 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
                 text = text,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Icon(
                 imageVector = Icons.Default.ChevronRight,
@@ -1377,7 +1396,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -1406,40 +1425,41 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     text = task.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(R.string.task_details_format, task.numberOfTablets, task.times.joinToString(", ") { it.title }, task.priority),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             IconButton(
                 onClick = onDelete,
                 colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
+                    contentColor = Color(0xFFB71C1C)
                 )
             ) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_task_desc), tint = MaterialTheme.colorScheme.error)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_task_desc), tint = Color(0xFFB71C1C))
             }
         }
     }
 }
 
 @Composable
-fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
+fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit, isDark: Boolean) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isTaken) 
-            Color(0xFFEEF6FB) 
-        else 
-            Color.White,
+        targetValue = if (isTaken) {
+            if (isDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color(0xFFEEF6FB)
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
         label = "backgroundColorAnim"
     )
 
     val priorityColor = when (task.priority) {
-        Priority.Low.title -> Color(0xFF388E3C)
-        Priority.Medium.title -> Color(0xFFFBC02D)
-        Priority.High.title -> Color(0xFFD32F2F)
+        Priority.Low.title -> if (isDark) LowPriorityDark else Color(0xFF388E3C)
+        Priority.Medium.title -> if (isDark) MediumPriorityDark else Color(0xFFFBC02D)
+        Priority.High.title -> if (isDark) HighPriorityDark else Color(0xFFD32F2F)
         else -> Color.Gray
     }
 
@@ -1451,10 +1471,8 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        ),
-        border = if (isTaken) BorderStroke(1.dp, Color(0xFFC7E3F4)) else null
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = if (isTaken) BorderStroke(1.dp, if (isDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color(0xFFC7E3F4)) else null
     ) {
         Row(
             modifier = Modifier
@@ -1467,7 +1485,7 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
                 onCheckedChange = { onToggle() },
                 colors = CheckboxDefaults.colors(
                     checkedColor = BluePrimary,
-                    uncheckedColor = TextSecondary
+                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             
@@ -1486,13 +1504,13 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit) {
                     text = task.name,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = if (isTaken) TextSecondary else TextPrimary
+                        color = if (isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Text(
                     text = task.numberOfTablets,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1518,7 +1536,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
@@ -1526,6 +1544,7 @@ fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, messag
 
 @Composable
 fun AddTaskDialog(
+    viewModel: TaskViewModel,
     onDismiss: () -> Unit,
     onConfirm: (String, String, List<TimeSlot>, Priority) -> Unit
 ) {
@@ -1537,6 +1556,9 @@ fun AddTaskDialog(
     val priorityOptions = Priority.entries
     var selectedTimes by remember { mutableStateOf(setOf<TimeSlot>()) }
     var selectedPriority by remember { mutableStateOf(Priority.Medium) }
+    
+    val themePref = viewModel.themePreference.collectAsState().value
+    val isDark = themePref == ThemePreference.Dark || (themePref == ThemePreference.Default && isSystemInDarkTheme())
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -1553,7 +1575,7 @@ fun AddTaskDialog(
                     })
                 },
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
@@ -1569,7 +1591,7 @@ fun AddTaskDialog(
                         text = stringResource(R.string.new_task),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = TextHeader
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -1584,7 +1606,9 @@ fun AddTaskDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BluePrimary,
                             unfocusedBorderColor = Color.LightGray,
-                            focusedLabelColor = BluePrimary
+                            focusedLabelColor = BluePrimary,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) })
@@ -1599,7 +1623,9 @@ fun AddTaskDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BluePrimary,
                             unfocusedBorderColor = Color.LightGray,
-                            focusedLabelColor = BluePrimary
+                            focusedLabelColor = BluePrimary,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { 
@@ -1610,11 +1636,12 @@ fun AddTaskDialog(
                 }
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                    @Suppress("DEPRECATION")
                     Text(
                         text = stringResource(R.string.priority),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TextHeader
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
@@ -1624,9 +1651,9 @@ fun AddTaskDialog(
                         priorityOptions.forEach { priority ->
                             val isSelected = selectedPriority == priority
                             val chipColor = when(priority) {
-                                Priority.Low -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
-                                Priority.Medium -> if (isSelected) Color(0xFFFBC02D) else Color(0xFFFFF9C4)
-                                Priority.High -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
+                                Priority.Low -> if (isSelected) (if (isDark) LowPriorityDark else Color(0xFF388E3C)) else (if (isDark) Color(0xFF2E3B2E) else Color(0xFFF1F8E9))
+                                Priority.Medium -> if (isSelected) (if (isDark) MediumPriorityDark else Color(0xFFFBC02D)) else (if (isDark) Color(0xFF3B3B2E) else Color(0xFFFFF9C4))
+                                Priority.High -> if (isSelected) (if (isDark) HighPriorityDark else Color(0xFFD32F2F)) else (if (isDark) Color(0xFF3B2E2E) else Color(0xFFFBE9E7))
                             }
                             
                             Box(
@@ -1644,7 +1671,7 @@ fun AddTaskDialog(
                             ) {
                                 Text(
                                     text = priority.title,
-                                    color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.8f),
+                                    color = if (isSelected) Color.White else (if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f)),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 12.sp
                                 )
@@ -1659,7 +1686,7 @@ fun AddTaskDialog(
                         text = stringResource(R.string.schedule),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = TextHeader
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
@@ -1669,9 +1696,9 @@ fun AddTaskDialog(
                         timeOptions.forEach { time ->
                             val isSelected = selectedTimes.contains(time)
                             val chipColor = when(time) {
-                                TimeSlot.Morning -> if (isSelected) Color(0xFF1976D2) else Color(0xFFE3F2FD)
-                                TimeSlot.Afternoon -> if (isSelected) Color(0xFF388E3C) else Color(0xFFF1F8E9)
-                                TimeSlot.Evening -> if (isSelected) Color(0xFFD32F2F) else Color(0xFFFBE9E7)
+                                TimeSlot.Morning -> if (isSelected) (if (isDark) MorningBlueDark else Color(0xFF1976D2)) else (if (isDark) Color(0xFF2E343B) else Color(0xFFE3F2FD))
+                                TimeSlot.Afternoon -> if (isSelected) (if (isDark) AfternoonGreenDark else Color(0xFF388E3C)) else (if (isDark) Color(0xFF2E3B2E) else Color(0xFFF1F8E9))
+                                TimeSlot.Evening -> if (isSelected) (if (isDark) EveningRedDark else Color(0xFFD32F2F)) else (if (isDark) Color(0xFF3B2E2E) else Color(0xFFFBE9E7))
                             }
                             
                             Box(
@@ -1689,7 +1716,7 @@ fun AddTaskDialog(
                             ) {
                                 Text(
                                     text = time.title,
-                                    color = if (isSelected) Color.White else Color.Black.copy(alpha = 0.8f),
+                                    color = if (isSelected) Color.White else (if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f)),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 12.sp
                                 )
@@ -1725,7 +1752,7 @@ fun AddTaskDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.cancel), color = TextSecondary, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
                     }
                 }
             }

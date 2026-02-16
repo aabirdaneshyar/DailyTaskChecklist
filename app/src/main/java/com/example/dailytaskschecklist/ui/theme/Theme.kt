@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.dailytaskschecklist.ThemePreference
 
@@ -21,7 +22,10 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = BlueTertiaryDark,
     onTertiary = BlueOnTertiaryDark,
     background = AppBackgroundDark,
-    surface = AppBackgroundDark
+    surface = SurfaceDark,
+    onBackground = Color.White,
+    onSurface = Color.White,
+    onSurfaceVariant = Color.LightGray
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -38,7 +42,10 @@ private val LightColorScheme = lightColorScheme(
     tertiaryContainer = BlueTertiaryContainer,
     onTertiaryContainer = BlueOnTertiaryContainer,
     background = AppBackground,
-    surface = AppBackground
+    surface = Color.White, // Original design used white surfaces
+    onBackground = TextHeader,
+    onSurface = TextPrimary,
+    onSurfaceVariant = TextSecondary
 )
 
 @Composable
