@@ -2,9 +2,9 @@
 <resources>
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <!-- Background color of the splash screen in Dark Mode -->
-        <item name="windowSplashScreenBackground">#121212</item>
-        <!-- Set the icon to transparent to "remove" it -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/transparent</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <!-- Use the tasks icon for the central icon -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_tasks</item>
         <!-- The theme of the activity that will be used after the splash screen -->
         <item name="postSplashScreenTheme">@style/Theme.DailyTasksChecklist</item>
     </style>
