@@ -427,7 +427,8 @@ fun AddTaskPage(
                             fontSize = 18.sp
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         },
         floatingActionButton = {
@@ -899,7 +900,8 @@ fun OptionsPage(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { innerPadding ->
@@ -1312,7 +1314,8 @@ fun AboutPage(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { innerPadding ->
@@ -1377,7 +1380,8 @@ fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnS
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { innerPadding ->
