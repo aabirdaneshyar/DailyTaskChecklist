@@ -26,6 +26,9 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     private val _themePreference = MutableStateFlow(getSavedThemePreference())
     val themePreference: StateFlow<ThemePreference> = _themePreference.asStateFlow()
 
+    private val _isOnboardingCompleted = MutableStateFlow(sharedPref.getBoolean("onboarding_completed", false))
+    val isOnboardingCompleted: StateFlow<Boolean> = _isOnboardingCompleted.asStateFlow()
+
     val todayRecords: StateFlow<List<TaskRecord>> = _currentDate
         .flatMapLatest { date -> dao.getRecordsForDate(date) }
         .stateIn(
@@ -51,6 +54,11 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     fun setThemePreference(preference: ThemePreference) {
         sharedPref.edit().putString("theme_preference", preference.name).apply()
         _themePreference.value = preference
+    }
+
+    fun setOnboardingCompleted(completed: Boolean) {
+        sharedPref.edit().putBoolean("onboarding_completed", completed).apply()
+        _isOnboardingCompleted.value = completed
     }
 
     /**

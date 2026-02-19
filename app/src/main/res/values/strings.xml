@@ -11,6 +11,9 @@
     <string name="add_task">Add Task</string>
     <string name="go_back">Go back</string>
     <string name="add_to_list">Add to List</string>
+    <string name="skip">Skip</string>
+    <string name="next">Next</string>
+    <string name="get_started">Get Started</string>
 
     <!-- Titles and Headers -->
     <string name="manage_tasks">Manage Tasks</string>
@@ -30,6 +33,16 @@
     <string name="current_month">Current Month</string>
     <string name="previous_month">Previous Month</string>
     <string name="save_tasks">Save Tasks</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Welcome to\nTasks Checklist</string>
+    <string name="onboarding_desc_1">Create and manage your daily task checklist by organizing your day into Morning, Afternoon, and Evening.</string>
+    <string name="onboarding_title_2">Create &amp;\nOrganize Tasks</string>
+    <string name="onboarding_desc_2">Add tasks and their description.\nSet their priority, and assign them to Morning, Afternoon or Evening.</string>
+    <string name="onboarding_title_3">Stay on Top of\nYour Day</string>
+    <string name="onboarding_desc_3">View tasks for each part of the day, sorted by priority.\nTrack total tasks, mark them as completed and save your checklist with a clear completion indicator.</string>
+    <string name="onboarding_title_4">Track Your\nMonthly Progress</string>
+    <string name="onboarding_desc_4">View your progress for the current month, including today’s status across Morning, Afternoon, and Evening.\nYou can also review data from previous month.</string>
 
     <!-- Labels and Placeholders -->
     <string name="task_name_label">Task Name</string>

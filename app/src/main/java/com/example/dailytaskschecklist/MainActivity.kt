@@ -62,6 +62,7 @@ import java.util.*
 
 enum class Screen {
     Splash,
+    Onboarding,
     AddTask,
     Checklist,
     Options,
@@ -102,6 +103,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TaskAppContainer(viewModel: TaskViewModel) {
     val tasks by viewModel.tasks.collectAsState()
+    val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsState()
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
     var isFromOptions by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -146,16 +148,20 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
 
     LaunchedEffect(Unit) {
         delay(2500) 
-        currentScreen = if (tasks.isNotEmpty()) {
-            Screen.Checklist
+        if (!isOnboardingCompleted) {
+            currentScreen = Screen.Onboarding
         } else {
-            isFromOptions = false
-            Screen.AddTask
+            currentScreen = if (tasks.isNotEmpty()) {
+                Screen.Checklist
+            } else {
+                isFromOptions = false
+                Screen.AddTask
+            }
         }
     }
 
     LaunchedEffect(tasks) {
-        if (currentScreen != Screen.Splash) {
+        if (currentScreen != Screen.Splash && currentScreen != Screen.Onboarding) {
             if (tasks.isEmpty() && currentScreen == Screen.Checklist) {
                 isFromOptions = false
                 currentScreen = Screen.AddTask
@@ -163,7 +169,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         }
     }
 
-    BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
+    BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash && currentScreen != Screen.Onboarding) {
         if (tasks.isEmpty() && currentScreen == Screen.AddTask) {
             activity?.finish()
         } else {
@@ -187,6 +193,14 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
 
     when (currentScreen) {
         Screen.Splash -> SplashScreen(viewModel)
+        Screen.Onboarding -> {
+            OnboardingScreen(
+                onFinished = {
+                    viewModel.setOnboardingCompleted(true)
+                    currentScreen = if (tasks.isNotEmpty()) Screen.Checklist else Screen.AddTask
+                }
+            )
+        }
         Screen.AddTask -> {
             AddTaskPage(
                 viewModel = viewModel,
@@ -222,6 +236,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                 },
                 onNavigateToMonthlyStatus = { currentScreen = Screen.MonthlyStatus },
                 onNavigateToAbout = { currentScreen = Screen.About },
+                onNavigateToOnboarding = { currentScreen = Screen.Onboarding },
                 onBack = { currentScreen = Screen.Checklist }
             )
         }
@@ -886,6 +901,7 @@ fun OptionsPage(
     onNavigateToManage: () -> Unit,
     onNavigateToMonthlyStatus: () -> Unit,
     onNavigateToAbout: () -> Unit,
+    onNavigateToOnboarding: () -> Unit,
     onBack: () -> Unit
 ) {
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -925,6 +941,13 @@ fun OptionsPage(
                 icon = Icons.Default.AddCircle,
                 color = BluePrimary,
                 onClick = onNavigateToManage,
+                isDark = isDark
+            )
+            OptionButton(
+                text = "Show Walkthrough",
+                icon = Icons.Default.AutoAwesome,
+                color = BluePrimary,
+                onClick = onNavigateToOnboarding,
                 isDark = isDark
             )
             OptionButton(
