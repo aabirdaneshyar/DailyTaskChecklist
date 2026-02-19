@@ -8,8 +8,8 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <!-- Background color of the splash screen -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <!-- Reverted to original icon without padding -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/icon_tasks</item>
+        <!-- Removed the icon to show only background -->
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <!-- The theme of the activity that will be used after the splash screen -->
         <item name="postSplashScreenTheme">@style/Theme.DailyTasksChecklist</item>
     </style>
