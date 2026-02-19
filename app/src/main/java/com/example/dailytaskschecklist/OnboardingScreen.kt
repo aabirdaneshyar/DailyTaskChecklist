@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -67,6 +68,7 @@ fun OnboardingScreen(
 
     val pagerState = rememberPagerState(pageCount = { onboardingPages.size })
     val scope = rememberCoroutineScope()
+    val isDark = isSystemInDarkTheme()
 
     Box(
         modifier = Modifier
@@ -88,7 +90,7 @@ fun OnboardingScreen(
             ) {
                 Text(
                     text = stringResource(R.string.skip),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = if (isDark) BluePrimaryDark else BluePrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -151,8 +153,8 @@ fun OnboardingScreen(
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = BluePrimary,
+                        contentColor = Color.White
                     )
                 ) {
                     Text(

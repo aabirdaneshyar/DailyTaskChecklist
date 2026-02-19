@@ -106,6 +106,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
     val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsState()
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
     var isFromOptions by remember { mutableStateOf(false) }
+    var isOnboardingFromOptions by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = (context as? ComponentActivity)
@@ -169,11 +170,19 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         }
     }
 
-    BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash && currentScreen != Screen.Onboarding) {
+    BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
         if (tasks.isEmpty() && currentScreen == Screen.AddTask) {
             activity?.finish()
         } else {
             when (currentScreen) {
+                Screen.Onboarding -> {
+                    if (isOnboardingFromOptions) {
+                        currentScreen = Screen.Options
+                        isOnboardingFromOptions = false
+                    } else if (!isOnboardingCompleted) {
+                         activity?.finish()
+                    }
+                }
                 Screen.Options -> currentScreen = Screen.Checklist
                 Screen.AddTask -> {
                     if (isFromOptions) {
@@ -196,8 +205,13 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
         Screen.Onboarding -> {
             OnboardingScreen(
                 onFinished = {
-                    viewModel.setOnboardingCompleted(true)
-                    currentScreen = if (tasks.isNotEmpty()) Screen.Checklist else Screen.AddTask
+                    if (isOnboardingFromOptions) {
+                        currentScreen = Screen.Options
+                        isOnboardingFromOptions = false
+                    } else {
+                        viewModel.setOnboardingCompleted(true)
+                        currentScreen = if (tasks.isNotEmpty()) Screen.Checklist else Screen.AddTask
+                    }
                 }
             )
         }
@@ -236,7 +250,10 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
                 },
                 onNavigateToMonthlyStatus = { currentScreen = Screen.MonthlyStatus },
                 onNavigateToAbout = { currentScreen = Screen.About },
-                onNavigateToOnboarding = { currentScreen = Screen.Onboarding },
+                onNavigateToOnboarding = { 
+                    isOnboardingFromOptions = true
+                    currentScreen = Screen.Onboarding 
+                },
                 onBack = { currentScreen = Screen.Checklist }
             )
         }
@@ -688,10 +705,10 @@ fun ChecklistPage(
                     shape = RoundedCornerShape(16.dp),
                     elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 4.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSaved) Color.Gray else (if (isDark) BluePrimaryDark else BluePrimary),
-                        contentColor = if (isDark) Color.Black else Color.White,
-                        disabledContainerColor = if (isSaved) Color.Gray else (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.38f),
-                        disabledContentColor = (if (isDark) Color.Black else Color.White).copy(alpha = 0.74f)
+                        containerColor = if (isSaved) Color.Gray else BluePrimary,
+                        contentColor = Color.White,
+                        disabledContainerColor = if (isSaved) Color.Gray else BluePrimary.copy(alpha = 0.38f),
+                        disabledContentColor = Color.White.copy(alpha = 0.74f)
                     )
                 ) {
                     Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
