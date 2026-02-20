@@ -171,32 +171,30 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
     }
 
     BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
-        if (tasks.isEmpty() && currentScreen == Screen.AddTask) {
-            activity?.finish()
-        } else {
-            when (currentScreen) {
-                Screen.Onboarding -> {
-                    if (isOnboardingFromOptions) {
-                        currentScreen = Screen.Options
-                        isOnboardingFromOptions = false
-                    } else if (!isOnboardingCompleted) {
-                         activity?.finish()
-                    }
+        when (currentScreen) {
+            Screen.Onboarding -> {
+                if (isOnboardingFromOptions) {
+                    currentScreen = Screen.Options
+                    isOnboardingFromOptions = false
+                } else {
+                    activity?.finish()
                 }
-                Screen.Options -> currentScreen = Screen.Checklist
-                Screen.AddTask -> {
-                    if (isFromOptions) {
-                        currentScreen = Screen.Options
-                        isFromOptions = false
-                    }
-                }
-                Screen.MonthlyStatus -> currentScreen = Screen.Options
-                Screen.About -> currentScreen = Screen.Options
-                Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer, Screen.ContactSupport -> {
-                    currentScreen = Screen.About
-                }
-                else -> {}
             }
+            Screen.AddTask -> {
+                if (isFromOptions) {
+                    currentScreen = Screen.Options
+                    isFromOptions = false
+                } else {
+                    activity?.finish()
+                }
+            }
+            Screen.Options -> currentScreen = Screen.Checklist
+            Screen.MonthlyStatus -> currentScreen = Screen.Options
+            Screen.About -> currentScreen = Screen.Options
+            Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer, Screen.ContactSupport -> {
+                currentScreen = Screen.About
+            }
+            else -> {}
         }
     }
 
