@@ -17,12 +17,18 @@ interface TaskDao {
     @Update
     suspend fun updateTask(task: Task)
 
+    @Update
+    suspend fun updateTasks(tasks: List<Task>)
+
     @Delete
     suspend fun deleteTask(task: Task)
 
     // Task Records (History)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecord(record: TaskRecord)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecords(records: List<TaskRecord>)
 
     @Query("SELECT * FROM task_records WHERE date = :date")
     fun getRecordsForDate(date: String): Flow<List<TaskRecord>>

@@ -95,15 +95,16 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     private fun resetAllTasksImmediately() {
         viewModelScope.launch {
             val allTasks = dao.getAllTasks().first()
-            allTasks.forEach { task ->
-                dao.updateTask(
-                    task.copy(
-                        isTakenMorning = false,
-                        isTakenAfternoon = false,
-                        isTakenEvening = false,
-                        taskTaken = false
-                    )
+            val updatedTasks = allTasks.map { task ->
+                task.copy(
+                    isTakenMorning = false,
+                    isTakenAfternoon = false,
+                    isTakenEvening = false,
+                    taskTaken = false
                 )
+            }
+            if (updatedTasks.isNotEmpty()) {
+                dao.updateTasks(updatedTasks)
             }
         }
     }
@@ -129,23 +130,26 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     fun saveDailyRecords(tasks: List<Task>, timeSlot: TimeSlot) {
         viewModelScope.launch {
             val date = _currentDate.value
-            tasks.forEach { task ->
+            val records = tasks.map { task ->
                 val wasTaken = when (timeSlot) {
                     TimeSlot.Morning -> task.isTakenMorning
                     TimeSlot.Afternoon -> task.isTakenAfternoon
                     TimeSlot.Evening -> task.isTakenEvening
                 }
-                dao.insertRecord(
-                    TaskRecord(
-                        taskName = task.name,
-                        taskDetails = task.numberOfTablets,
-                        taskPriority = task.priority,
-                        date = date,
-                        timeSlot = timeSlot.title,
-                        wasTaken = wasTaken
-                    )
+                TaskRecord(
+                    taskName = task.name,
+                    taskDetails = task.numberOfTablets,
+                    taskPriority = task.priority,
+                    date = date,
+                    timeSlot = timeSlot.title,
+                    wasTaken = wasTaken
                 )
-                dao.updateTask(task.copy(taskTaken = true))
+            }
+            val updatedTasks = tasks.map { it.copy(taskTaken = true) }
+            
+            if (records.isNotEmpty()) {
+                dao.insertRecords(records)
+                dao.updateTasks(updatedTasks)
             }
         }
     }
@@ -153,15 +157,16 @@ class TaskViewModel(private val dao: TaskDao, private val context: Context) : Vi
     fun resetAllTasks() {
         viewModelScope.launch {
             val allTasks = dao.getAllTasks().first()
-            allTasks.forEach { task ->
-                dao.updateTask(
-                    task.copy(
-                        isTakenMorning = false,
-                        isTakenAfternoon = false,
-                        isTakenEvening = false,
-                        taskTaken = false
-                    )
+            val updatedTasks = allTasks.map { task ->
+                task.copy(
+                    isTakenMorning = false,
+                    isTakenAfternoon = false,
+                    isTakenEvening = false,
+                    taskTaken = false
                 )
+            }
+            if (updatedTasks.isNotEmpty()) {
+                dao.updateTasks(updatedTasks)
             }
         }
     }
