@@ -1180,7 +1180,10 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .weight(1f),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -1202,7 +1205,10 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                         TableHeaderCell(TimeSlot.Evening.title, Modifier.weight(1f))
                     }
 
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
                         items(dates) { date ->
                             val dateStr = remember(date) { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date) }
                             val displayDate = remember(date) { formatReportDate(date) }
