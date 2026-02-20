@@ -148,7 +148,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
     }
 
     LaunchedEffect(Unit) {
-        delay(2500) 
+        delay(2000) 
         if (!isOnboardingCompleted) {
             currentScreen = Screen.Onboarding
         } else {
@@ -1098,15 +1098,34 @@ fun OptionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () -> Unit) {
-    var selectedMonthIndex by remember { mutableStateOf(0) } 
-    val currentMonthRecords by viewModel.getRecordsForMonth(0).collectAsState(initial = emptyList())
-    val previousMonthRecords by viewModel.getRecordsForMonth(-1).collectAsState(initial = emptyList())
-
-    val records = if (selectedMonthIndex == 0) currentMonthRecords else previousMonthRecords
+    var selectedMonthIndex by remember { mutableIntStateOf(0) }
     
-    val calendar = Calendar.getInstance()
-    if (selectedMonthIndex == 1) calendar.add(Calendar.MONTH, -1)
-    val monthName = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
+    // Lazy collection: only collect from the database for the selected month
+    val records by remember(selectedMonthIndex) {
+        viewModel.getRecordsForMonth(if (selectedMonthIndex == 0) 0 else -1)
+    }.collectAsState(initial = emptyList())
+
+    val calendarInfo = remember(selectedMonthIndex) {
+        val cal = Calendar.getInstance()
+        if (selectedMonthIndex == 1) cal.add(Calendar.MONTH, -1)
+        val name = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(cal.time)
+        val dates = getDatesForMonth(if (selectedMonthIndex == 0) 0 else -1)
+        Pair(name, dates)
+    }
+    
+    val monthName = calendarInfo.first
+    val dates = calendarInfo.second
+
+    val groupedRecords = remember(records) {
+        records.groupBy { it.date }
+    }
+
+    // Pre-index scheduled slots to avoid O(N) search in every cell
+    val scheduledSlots = remember(tasks) {
+        val slots = mutableSetOf<TimeSlot>()
+        tasks.forEach { task -> slots.addAll(task.times) }
+        slots
+    }
 
     Scaffold(
         topBar = {
@@ -1183,12 +1202,13 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                         TableHeaderCell(TimeSlot.Evening.title, Modifier.weight(1f))
                     }
 
-                    val dates = remember(selectedMonthIndex) { 
-                        getDatesForMonth(if (selectedMonthIndex == 0) 0 else -1) 
-                    }
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(dates) { date ->
-                            StatusRow(date, records, tasks)
+                            val dateStr = remember(date) { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date) }
+                            val displayDate = remember(date) { formatReportDate(date) }
+                            val rowRecords = groupedRecords[dateStr] ?: emptyList()
+                            
+                            StatusRow(displayDate, date, rowRecords, scheduledSlots)
                             HorizontalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
                         }
                     }
@@ -1261,23 +1281,27 @@ fun formatReportDate(date: Date): String {
 }
 
 @Composable
-fun StatusRow(date: Date, records: List<TaskRecord>, tasks: List<Task>) {
-    val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date)
-    val displayDate = formatReportDate(date)
-    
-    val rowRecords = records.filter { it.date == dateStr }
-    
+fun StatusRow(displayDate: String, date: Date, rowRecords: List<TaskRecord>, scheduledSlots: Set<TimeSlot>) {
+    val today = remember {
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        cal.time
+    }
+
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(displayDate, modifier = Modifier.weight(1.2f).padding(vertical = 12.dp), textAlign = TextAlign.Center, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+        Text(displayDate, modifier = Modifier.weight(1.2f), textAlign = TextAlign.Center, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Morning, date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatusFast(TimeSlot.Morning, date, today, rowRecords, scheduledSlots))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Afternoon, date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatusFast(TimeSlot.Afternoon, date, today, rowRecords, scheduledSlots))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
-        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatus(TimeSlot.Evening, date, rowRecords, tasks))
+        StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatusFast(TimeSlot.Evening, date, today, rowRecords, scheduledSlots))
     }
 }
 
@@ -1295,21 +1319,14 @@ fun StatusCell(modifier: Modifier, status: StatusType) {
 
 enum class StatusType { Taken, Missed, None, Future }
 
-fun getStatus(slot: TimeSlot, date: Date, records: List<TaskRecord>, tasks: List<Task>): StatusType {
-    val today = Calendar.getInstance()
-    today.set(Calendar.HOUR_OF_DAY, 0)
-    today.set(Calendar.MINUTE, 0)
-    today.set(Calendar.SECOND, 0)
-    today.set(Calendar.MILLISECOND, 0)
-
-    if (date.after(today.time)) return StatusType.Future
+fun getStatusFast(slot: TimeSlot, date: Date, today: Date, records: List<TaskRecord>, scheduledSlots: Set<TimeSlot>): StatusType {
+    if (date.after(today)) return StatusType.Future
 
     val record = records.find { it.timeSlot == slot.title }
     if (record != null) return StatusType.Taken
 
-    return if (date.before(today.time)) {
-        val isScheduled = tasks.any { it.times.contains(slot) }
-        if (isScheduled) StatusType.None else StatusType.Future
+    return if (date.before(today)) {
+        if (scheduledSlots.contains(slot)) StatusType.None else StatusType.Future
     } else {
         // Today
         StatusType.Future
