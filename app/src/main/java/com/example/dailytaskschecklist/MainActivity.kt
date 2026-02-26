@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
@@ -37,6 +39,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -46,6 +49,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -60,27 +65,46 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+// --- ADAPTIVE DIMENSIONS SYSTEM ---
+data class AppDimensions(
+    val paddingSmall: Dp = 8.dp,
+    val paddingMedium: Dp = 16.dp,
+    val paddingLarge: Dp = 24.dp,
+    val bodySize: TextUnit = 16.sp,
+    val labelSize: TextUnit = 14.sp,
+    val titleSize: TextUnit = 20.sp,
+    val headerSize: TextUnit = 24.sp,
+    val iconSize: Dp = 24.dp,
+    val largeIconSize: Dp = 84.dp,
+    val cardHeight: Dp = 64.dp,
+    val buttonHeight: Dp = 56.dp
+)
+
+val LocalAppDimensions = staticCompositionLocalOf { AppDimensions() }
+
 enum class Screen {
-    Splash,
-    Onboarding,
-    AddTask,
-    Checklist,
-    Options,
-    MonthlyStatus,
-    About,
-    AboutApp,
-    Version,
-    PrivacyPolicy,
-    TermsDisclaimer,
-    ContactSupport
+    Splash, Onboarding, AddTask, Checklist, Options, MonthlyStatus, About, AboutApp, Version, PrivacyPolicy, TermsDisclaimer, ContactSupport
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Request Portrait immediately on launch
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        
         enableEdgeToEdge()
         setContent {
+            val configuration = LocalConfiguration.current
+            
+            // Re-request portrait if the configuration somehow reports landscape
+            LaunchedEffect(configuration.orientation) {
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
+            }
+
             val context = LocalContext.current
             val database = AppDatabase.getDatabase(context)
             val viewModel: TaskViewModel = viewModel(
@@ -98,228 +122,285 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Ensure orientation is still portrait when coming back to the app
+        if (resources.configuration.orientation != Configuration.ORIENTATION_PORTRAIT) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // If system configuration changes to landscape, immediately force it back
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
 }
 
 @Composable
 fun TaskAppContainer(viewModel: TaskViewModel) {
-    val tasks by viewModel.tasks.collectAsState()
-    val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsState()
-    var currentScreen by remember { mutableStateOf(Screen.Splash) }
-    var isFromOptions by remember { mutableStateOf(false) }
-    var isOnboardingFromOptions by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val activity = (context as? ComponentActivity)
+    val configuration = LocalConfiguration.current
+    val sw = configuration.screenWidthDp
 
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.updateDate()
-            }
+    val dimensions = when {
+        sw >= 900 -> { // Large Tablets (12-14 inch)
+            AppDimensions(
+                paddingSmall = 16.dp,
+                paddingMedium = 32.dp,
+                paddingLarge = 48.dp,
+                bodySize = 24.sp,
+                labelSize = 20.sp,
+                titleSize = 34.sp,
+                headerSize = 42.sp,
+                iconSize = 48.dp,
+                largeIconSize = 160.dp,
+                cardHeight = 120.dp,
+                buttonHeight = 84.dp
+            )
         }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+        sw >= 600 -> { // Standard Tablets (7-11 inch)
+            AppDimensions(
+                paddingSmall = 12.dp,
+                paddingMedium = 24.dp,
+                paddingLarge = 32.dp,
+                bodySize = 20.sp,
+                labelSize = 18.sp,
+                titleSize = 28.sp,
+                headerSize = 34.sp,
+                iconSize = 36.dp,
+                largeIconSize = 120.dp,
+                cardHeight = 90.dp,
+                buttonHeight = 72.dp
+            )
         }
+        else -> AppDimensions() // Phones
     }
 
-    DisposableEffect(Unit) {
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_TIME_TICK)
-            addAction(Intent.ACTION_TIME_CHANGED)
-            addAction(Intent.ACTION_TIMEZONE_CHANGED)
-            addAction(Intent.ACTION_DATE_CHANGED)
-        }
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                viewModel.updateDate()
+    CompositionLocalProvider(LocalAppDimensions provides dimensions) {
+        val tasks by viewModel.tasks.collectAsState()
+        val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsState()
+        var currentScreen by remember { mutableStateOf(Screen.Splash) }
+        var isFromOptions by remember { mutableStateOf(false) }
+        var isOnboardingFromOptions by remember { mutableStateOf(false) }
+        val context = LocalContext.current
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val activity = (context as? ComponentActivity)
+
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    viewModel.updateDate()
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
             }
         }
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            context.registerReceiver(receiver, filter)
-        }
-        
-        onDispose {
-            context.unregisterReceiver(receiver)
-        }
-    }
 
-    LaunchedEffect(Unit) {
-        delay(2000) 
-        if (!isOnboardingCompleted) {
-            currentScreen = Screen.Onboarding
-        } else {
-            currentScreen = if (tasks.isNotEmpty()) {
-                Screen.Checklist
+        DisposableEffect(Unit) {
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_TIME_TICK)
+                addAction(Intent.ACTION_TIME_CHANGED)
+                addAction(Intent.ACTION_TIMEZONE_CHANGED)
+                addAction(Intent.ACTION_DATE_CHANGED)
+            }
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    viewModel.updateDate()
+                }
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
             } else {
-                isFromOptions = false
-                Screen.AddTask
+                context.registerReceiver(receiver, filter)
+            }
+            
+            onDispose {
+                context.unregisterReceiver(receiver)
             }
         }
-    }
 
-    LaunchedEffect(tasks) {
-        if (currentScreen != Screen.Splash && currentScreen != Screen.Onboarding) {
-            if (tasks.isEmpty() && currentScreen == Screen.Checklist) {
-                isFromOptions = false
-                currentScreen = Screen.AddTask
-            }
-        }
-    }
-
-    BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
-        when (currentScreen) {
-            Screen.Onboarding -> {
-                if (isOnboardingFromOptions) {
-                    currentScreen = Screen.Options
-                    isOnboardingFromOptions = false
+        LaunchedEffect(Unit) {
+            delay(2000) 
+            if (!isOnboardingCompleted) {
+                currentScreen = Screen.Onboarding
+            } else {
+                currentScreen = if (tasks.isNotEmpty()) {
+                    Screen.Checklist
                 } else {
-                    activity?.finish()
-                }
-            }
-            Screen.AddTask -> {
-                if (isFromOptions) {
-                    currentScreen = Screen.Options
                     isFromOptions = false
-                } else {
-                    activity?.finish()
+                    Screen.AddTask
                 }
             }
-            Screen.Options -> currentScreen = Screen.Checklist
-            Screen.MonthlyStatus -> currentScreen = Screen.Options
-            Screen.About -> currentScreen = Screen.Options
-            Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer, Screen.ContactSupport -> {
-                currentScreen = Screen.About
-            }
-            else -> {}
         }
-    }
 
-    when (currentScreen) {
-        Screen.Splash -> SplashScreen(viewModel)
-        Screen.Onboarding -> {
-            OnboardingScreen(
-                onFinished = {
+        LaunchedEffect(tasks) {
+            if (currentScreen != Screen.Splash && currentScreen != Screen.Onboarding) {
+                if (tasks.isEmpty() && currentScreen == Screen.Checklist) {
+                    isFromOptions = false
+                    currentScreen = Screen.AddTask
+                }
+            }
+        }
+
+        BackHandler(enabled = currentScreen != Screen.Checklist && currentScreen != Screen.Splash) {
+            when (currentScreen) {
+                Screen.Onboarding -> {
                     if (isOnboardingFromOptions) {
                         currentScreen = Screen.Options
                         isOnboardingFromOptions = false
                     } else {
-                        viewModel.setOnboardingCompleted(true)
-                        currentScreen = if (tasks.isNotEmpty()) Screen.Checklist else Screen.AddTask
+                        activity?.finish()
                     }
                 }
-            )
-        }
-        Screen.AddTask -> {
-            AddTaskPage(
-                viewModel = viewModel,
-                tasks = tasks,
-                showBackIcon = isFromOptions,
-                onBack = { 
-                    currentScreen = Screen.Options
-                    isFromOptions = false
-                },
-                onDone = { 
+                Screen.AddTask -> {
                     if (isFromOptions) {
                         currentScreen = Screen.Options
+                        isFromOptions = false
                     } else {
-                        currentScreen = Screen.Checklist 
+                        activity?.finish()
                     }
-                    isFromOptions = false
                 }
-            )
-        }
-        Screen.Checklist -> {
-            ChecklistPage(
-                viewModel = viewModel,
-                tasks = tasks,
-                onOpenOptions = { currentScreen = Screen.Options }
-            )
-        }
-        Screen.Options -> {
-            OptionsPage(
-                viewModel = viewModel,
-                onNavigateToManage = { 
-                    isFromOptions = true
-                    currentScreen = Screen.AddTask 
-                },
-                onNavigateToMonthlyStatus = { currentScreen = Screen.MonthlyStatus },
-                onNavigateToAbout = { currentScreen = Screen.About },
-                onNavigateToOnboarding = { 
-                    isOnboardingFromOptions = true
-                    currentScreen = Screen.Onboarding 
-                },
-                onBack = { currentScreen = Screen.Checklist }
-            )
-        }
-        Screen.MonthlyStatus -> {
-            MonthlyStatusPage(
-                viewModel = viewModel,
-                tasks = tasks,
-                onBack = { currentScreen = Screen.Options }
-            )
-        }
-        Screen.About -> {
-            AboutPage(
-                onNavigateToAboutApp = { currentScreen = Screen.AboutApp },
-                onNavigateToVersion = { currentScreen = Screen.Version },
-                onNavigateToPrivacy = { currentScreen = Screen.PrivacyPolicy },
-                onNavigateToTerms = { currentScreen = Screen.TermsDisclaimer },
-                onNavigateToContact = { currentScreen = Screen.ContactSupport },
-                onBack = { currentScreen = Screen.Options }
-            )
-        }
-        Screen.AboutApp -> {
-            SubAboutPage(title = stringResource(R.string.about_the_app), onBack = { currentScreen = Screen.About }) {
-                Text(
-                    text = stringResource(R.string.about_app_content),
-                    textAlign = TextAlign.Justify,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Screen.Options -> currentScreen = Screen.Checklist
+                Screen.MonthlyStatus -> currentScreen = Screen.Options
+                Screen.About -> currentScreen = Screen.Options
+                Screen.AboutApp, Screen.Version, Screen.PrivacyPolicy, Screen.TermsDisclaimer, Screen.ContactSupport -> {
+                    currentScreen = Screen.About
+                }
+                else -> {}
             }
         }
-        Screen.Version -> {
-            SubAboutPage(title = stringResource(R.string.version), onBack = { currentScreen = Screen.About }) {
-                Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
-                Text(stringResource(R.string.version_number), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
-            }
-        }
-        Screen.PrivacyPolicy -> {
-            SubAboutPage(title = stringResource(R.string.privacy_policy), onBack = { currentScreen = Screen.About }) {
-                Text(
-                    text = stringResource(R.string.privacy_policy_content_1) + "\n\n" +
-                           stringResource(R.string.privacy_policy_content_2) + "\n\n" +
-                           stringResource(R.string.privacy_policy_content_3),
-                    textAlign = TextAlign.Justify,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground
+
+        when (currentScreen) {
+            Screen.Splash -> SplashScreen(viewModel)
+            Screen.Onboarding -> {
+                OnboardingScreen(
+                    onFinished = {
+                        if (isOnboardingFromOptions) {
+                            currentScreen = Screen.Options
+                            isOnboardingFromOptions = false
+                        } else {
+                            viewModel.setOnboardingCompleted(true)
+                            currentScreen = if (tasks.isNotEmpty()) Screen.Checklist else Screen.AddTask
+                        }
+                    }
                 )
             }
-        }
-        Screen.TermsDisclaimer -> {
-            SubAboutPage(title = stringResource(R.string.terms_disclaimer), onBack = { currentScreen = Screen.About }) {
-                Text(
-                    text = stringResource(R.string.terms_disclaimer_content_1) + "\n\n" +
-                           stringResource(R.string.terms_disclaimer_content_2) + "\n\n" +
-                           stringResource(R.string.terms_disclaimer_content_3),
-                    textAlign = TextAlign.Justify,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground
+            Screen.AddTask -> {
+                AddTaskPage(
+                    viewModel = viewModel,
+                    tasks = tasks,
+                    showBackIcon = isFromOptions,
+                    onBack = { 
+                        currentScreen = Screen.Options
+                        isFromOptions = false
+                    },
+                    onDone = { 
+                        if (isFromOptions) {
+                            currentScreen = Screen.Options
+                        } else {
+                            currentScreen = Screen.Checklist 
+                        }
+                        isFromOptions = false
+                    }
                 )
             }
-        }
-        Screen.ContactSupport -> {
-            SubAboutPage(title = stringResource(R.string.contact_support), onBack = { currentScreen = Screen.About }) {
-                Text(
-                    text = stringResource(R.string.contact_support_content),
-                    textAlign = TextAlign.Justify,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground
+            Screen.Checklist -> {
+                ChecklistPage(
+                    viewModel = viewModel,
+                    tasks = tasks,
+                    onOpenOptions = { currentScreen = Screen.Options }
                 )
+            }
+            Screen.Options -> {
+                OptionsPage(
+                    viewModel = viewModel,
+                    onNavigateToManage = { 
+                        isFromOptions = true
+                        currentScreen = Screen.AddTask 
+                    },
+                    onNavigateToMonthlyStatus = { currentScreen = Screen.MonthlyStatus },
+                    onNavigateToAbout = { currentScreen = Screen.About },
+                    onNavigateToOnboarding = { 
+                        isOnboardingFromOptions = true
+                        currentScreen = Screen.Onboarding 
+                    },
+                    onBack = { currentScreen = Screen.Checklist }
+                )
+            }
+            Screen.MonthlyStatus -> {
+                MonthlyStatusPage(
+                    viewModel = viewModel,
+                    tasks = tasks,
+                    onBack = { currentScreen = Screen.Options }
+                )
+            }
+            Screen.About -> {
+                AboutPage(
+                    onNavigateToAboutApp = { currentScreen = Screen.AboutApp },
+                    onNavigateToVersion = { currentScreen = Screen.Version },
+                    onNavigateToPrivacy = { currentScreen = Screen.PrivacyPolicy },
+                    onNavigateToTerms = { currentScreen = Screen.TermsDisclaimer },
+                    onNavigateToContact = { currentScreen = Screen.ContactSupport },
+                    onBack = { currentScreen = Screen.Options }
+                )
+            }
+            Screen.AboutApp -> {
+                SubAboutPage(title = stringResource(R.string.about_the_app), onBack = { currentScreen = Screen.About }) {
+                    Text(
+                        text = stringResource(R.string.about_app_content),
+                        textAlign = TextAlign.Justify,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = LocalAppDimensions.current.bodySize),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+            Screen.Version -> {
+                SubAboutPage(title = stringResource(R.string.version), onBack = { currentScreen = Screen.About }) {
+                    val dim = LocalAppDimensions.current
+                    Text(stringResource(R.string.version_name), fontWeight = FontWeight.Bold, fontSize = dim.titleSize, color = MaterialTheme.colorScheme.onBackground)
+                    Text(stringResource(R.string.version_number), fontSize = dim.bodySize, color = MaterialTheme.colorScheme.onBackground)
+                }
+            }
+            Screen.PrivacyPolicy -> {
+                SubAboutPage(title = stringResource(R.string.privacy_policy), onBack = { currentScreen = Screen.About }) {
+                    Text(
+                        text = stringResource(R.string.privacy_policy_content_1) + "\n\n" +
+                               stringResource(R.string.privacy_policy_content_2) + "\n\n" +
+                               stringResource(R.string.privacy_policy_content_3),
+                        textAlign = TextAlign.Justify,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = LocalAppDimensions.current.bodySize),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+            Screen.TermsDisclaimer -> {
+                SubAboutPage(title = stringResource(R.string.terms_disclaimer), onBack = { currentScreen = Screen.About }) {
+                    val dim = LocalAppDimensions.current
+                    Text(
+                        text = stringResource(R.string.terms_disclaimer_content_1) + "\n\n" +
+                               stringResource(R.string.terms_disclaimer_content_2) + "\n\n" +
+                               stringResource(R.string.terms_disclaimer_content_3),
+                        textAlign = TextAlign.Justify,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = dim.bodySize),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+            Screen.ContactSupport -> {
+                SubAboutPage(title = stringResource(R.string.contact_support), onBack = { currentScreen = Screen.About }) {
+                    Text(
+                        text = stringResource(R.string.contact_support_content),
+                        textAlign = TextAlign.Justify,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = LocalAppDimensions.current.bodySize),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
     }
@@ -327,6 +408,7 @@ fun TaskAppContainer(viewModel: TaskViewModel) {
 
 @Composable
 fun SplashScreen(viewModel: TaskViewModel) {
+    val dim = LocalAppDimensions.current
     val infiniteTransition = rememberInfiniteTransition(label = "splash")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 0.98f,
@@ -356,7 +438,7 @@ fun SplashScreen(viewModel: TaskViewModel) {
                 modifier = Modifier.scale(pulseScale)
             ) {
                 Surface(
-                    modifier = Modifier.size(220.dp),
+                    modifier = Modifier.size(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 400.dp else 300.dp) else 220.dp),
                     shape = RoundedCornerShape(48.dp),
                     color = Color.Transparent,
                     shadowElevation = 16.dp
@@ -373,43 +455,43 @@ fun SplashScreen(viewModel: TaskViewModel) {
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_tasks),
-                            contentDescription = null, // Decorative icon
+                            contentDescription = null, 
                             modifier = Modifier.fillMaxSize().scale(1.5f),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(dim.paddingLarge * 2f))
             Text(
                 text = stringResource(R.string.splash_title),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = (dim.headerSize.value + 4f).sp),
                 fontWeight = FontWeight.Black,
                 color = if (isDark) BluePrimaryDark else BluePrimary,
                 letterSpacing = 1.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp)
+                modifier = Modifier.padding(horizontal = dim.paddingLarge)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dim.paddingSmall))
             Text(
                 text = stringResource(R.string.splash_subtitle),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = dim.titleSize),
                 fontWeight = FontWeight.SemiBold,
                 color = (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(dim.paddingSmall))
             Text(
                 text = stringResource(R.string.splash_tagline),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = dim.bodySize),
                 fontWeight = FontWeight.Medium,
                 color = (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.6f),
                 letterSpacing = 4.sp
             )
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(dim.paddingLarge * 2.5f))
             LinearProgressIndicator(
                 modifier = Modifier
-                    .width(180.dp)
+                    .width(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 360.dp else 260.dp) else 180.dp)
                     .clip(CircleShape),
                 color = if (isDark) BluePrimaryDark else BluePrimary,
                 trackColor = (if (isDark) BluePrimaryDark else BluePrimary).copy(alpha = 0.1f)
@@ -427,6 +509,7 @@ fun AddTaskPage(
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
+    val dim = LocalAppDimensions.current
     var showAddDialog by remember { mutableStateOf(false) }
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
     val scope = rememberCoroutineScope()
@@ -435,11 +518,11 @@ fun AddTaskPage(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.manage_tasks), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.manage_tasks), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, fontSize = dim.titleSize) },
                 navigationIcon = {
                     if (showBackIcon) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(dim.iconSize))
                         }
                     }
                 },
@@ -454,7 +537,7 @@ fun AddTaskPage(
                             text = stringResource(R.string.done),
                             fontWeight = FontWeight.Bold,
                             color = if (tasks.isNotEmpty()) (if (isDark) BluePrimaryDark else BluePrimary) else Color.Gray,
-                            fontSize = 18.sp
+                            fontSize = (dim.bodySize.value + 2f).sp
                         )
                     }
                 },
@@ -464,8 +547,8 @@ fun AddTaskPage(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showAddDialog = true },
-                icon = { Icon(Icons.Default.Add, stringResource(R.string.add_task_icon)) },
-                text = { Text(stringResource(R.string.add_task)) },
+                icon = { Icon(Icons.Default.Add, stringResource(R.string.add_task_icon), modifier = Modifier.size(dim.iconSize)) },
+                text = { Text(stringResource(R.string.add_task), fontSize = dim.bodySize) },
                 containerColor = BluePrimary,
                 contentColor = Color.White
             )
@@ -484,8 +567,8 @@ fun AddTaskPage(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(dim.paddingMedium),
+                    verticalArrangement = Arrangement.spacedBy(dim.paddingSmall + 4.dp)
                 ) {
                     items(tasks) { task ->
                         TaskEditCard(
@@ -519,8 +602,8 @@ fun AddTaskPage(
             val isDark = themePref == ThemePreference.Dark || (themePref == ThemePreference.Default && isSystemInDarkTheme())
             AlertDialog(
                 onDismissRequest = { taskToDelete = null },
-                title = { Text(stringResource(R.string.delete_task_title), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black) },
-                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black) },
+                title = { Text(stringResource(R.string.delete_task_title), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontSize = dim.titleSize) },
+                text = { Text(stringResource(R.string.delete_task_confirmation, taskToDelete?.name ?: ""), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontSize = dim.bodySize) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -532,12 +615,12 @@ fun AddTaskPage(
                             contentColor = Color.White
                         )
                     ) {
-                        Text(stringResource(R.string.delete))
+                        Text(stringResource(R.string.delete), fontSize = dim.bodySize)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { taskToDelete = null }) {
-                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray, fontSize = dim.bodySize)
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.surface
@@ -553,6 +636,7 @@ fun ChecklistPage(
     tasks: List<Task>,
     onOpenOptions: () -> Unit
 ) {
+    val dim = LocalAppDimensions.current
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = TimeSlot.entries
     val context = LocalContext.current
@@ -663,14 +747,15 @@ fun ChecklistPage(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = stringResource(R.string.refresh_data),
                             tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                            modifier = Modifier.rotate(rotation.value)
+                            modifier = Modifier.rotate(rotation.value).size(dim.iconSize)
                         )
                     }
                     IconButton(onClick = onOpenOptions) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(R.string.open_options_menu),
-                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                            modifier = Modifier.size(dim.iconSize)
                         )
                     }
                 },
@@ -682,7 +767,7 @@ fun ChecklistPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(16.dp),
+                    .padding(dim.paddingMedium),
                 color = Color.Transparent
             ) {
                 Button(
@@ -699,7 +784,7 @@ fun ChecklistPage(
                     enabled = !isSaved && currentItems.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(dim.buttonHeight),
                     shape = RoundedCornerShape(16.dp),
                     elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 4.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -709,11 +794,11 @@ fun ChecklistPage(
                         disabledContentColor = Color.White.copy(alpha = 0.74f)
                     )
                 ) {
-                    Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null)
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Icon(if (isSaved) Icons.Default.DoneAll else Icons.Default.Save, contentDescription = null, modifier = Modifier.size(dim.iconSize))
+                    Spacer(modifier = Modifier.width(dim.paddingSmall + 4.dp))
                     Text(
                         text = if (isSaved) stringResource(R.string.records_saved_for_timeslot, currentTab.title) else stringResource(R.string.save_tasks_for_timeslot, currentTab.title),
-                        fontSize = 18.sp, 
+                        fontSize = (dim.bodySize.value + 2f).sp, 
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -724,15 +809,15 @@ fun ChecklistPage(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = dim.paddingLarge)
         ) {
-            Column(modifier = Modifier.padding(bottom = 12.dp)) {
+            Column(modifier = Modifier.padding(bottom = dim.paddingSmall + 4.dp)) {
                 Column {
                     Text(
                         text = stringResource(R.string.checklist_for),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 20.sp
+                            fontSize = (dim.headerSize.value - 4f).sp
                         ),
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -740,7 +825,7 @@ fun ChecklistPage(
                         text = formatUIDate(currentDateStr),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 24.sp
+                            fontSize = dim.headerSize
                         ),
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -750,7 +835,7 @@ fun ChecklistPage(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = dim.paddingSmall + 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -783,15 +868,15 @@ fun ChecklistPage(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dim.paddingSmall))
             
             Text(
                 text = stringResource(R.string.total_tasks, currentItems.size),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = (dim.bodySize.value - 2f).sp),
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dim.paddingSmall))
 
             if (currentItems.isEmpty()) {
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
@@ -804,7 +889,7 @@ fun ChecklistPage(
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(bottom = 8.dp)
+                    contentPadding = PaddingValues(bottom = dim.paddingSmall)
                 ) {
                     items(currentItems) { task ->
                         val isTaken = if (isSaved) {
@@ -830,20 +915,20 @@ fun ChecklistPage(
         if (showPartialSaveDialog) {
             AlertDialog(
                 onDismissRequest = { showPartialSaveDialog = false },
-                title = { Text(stringResource(R.string.save_tasks), color = MaterialTheme.colorScheme.onSurface) },
-                text = { Text(stringResource(R.string.save_partial_records_dialog), color = MaterialTheme.colorScheme.onSurface) },
+                title = { Text(stringResource(R.string.save_tasks), color = MaterialTheme.colorScheme.onSurface, fontSize = dim.titleSize) },
+                text = { Text(stringResource(R.string.save_partial_records_dialog), color = MaterialTheme.colorScheme.onSurface, fontSize = dim.bodySize) },
                 confirmButton = {
                     Button(onClick = {
                         viewModel.saveDailyRecords(currentItems, currentTab)
                         Toast.makeText(context, context.getString(R.string.records_saved, currentTab.title), Toast.LENGTH_SHORT).show()
                         showPartialSaveDialog = false
                     }) {
-                        Text(stringResource(R.string.yes))
+                        Text(stringResource(R.string.yes), fontSize = dim.bodySize)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showPartialSaveDialog = false }) {
-                        Text(stringResource(R.string.no))
+                        Text(stringResource(R.string.no), fontSize = dim.bodySize)
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.surface
@@ -862,13 +947,14 @@ fun CustomTabButton(
     textColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val dim = LocalAppDimensions.current
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(8.dp)
+                .size(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 16.dp else 12.dp) else 8.dp)
                 .clip(CircleShape)
                 .background(if (isCompleted) Color(0xFF388E3C) else Color(0xFFD32F2F))
         )
@@ -876,7 +962,7 @@ fun CustomTabButton(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(dim.buttonHeight - 8.dp)
                 .shadow(if (isSelected) 2.dp else 1.dp, RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
                 .background(bgColor.copy(alpha = if (isSelected) 1f else 0.3f), RoundedCornerShape(24.dp))
@@ -893,7 +979,7 @@ fun CustomTabButton(
                     text = text,
                     color = if (isSelected) textColor else textColor.copy(alpha = 0.7f),
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                    fontSize = 14.sp
+                    fontSize = dim.labelSize
                 )
                 if (isSelected) {
                     Spacer(modifier = Modifier.height(2.dp))
@@ -919,6 +1005,7 @@ fun OptionsPage(
     onNavigateToOnboarding: () -> Unit,
     onBack: () -> Unit
 ) {
+    val dim = LocalAppDimensions.current
     var showThemeDialog by remember { mutableStateOf(false) }
     val themePreference by viewModel.themePreference.collectAsState()
     val isDark = isSystemInDarkTheme() || themePreference == ThemePreference.Dark
@@ -926,10 +1013,10 @@ fun OptionsPage(
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.options), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.options), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, fontSize = dim.headerSize) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(dim.iconSize))
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent)
@@ -940,8 +1027,8 @@ fun OptionsPage(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(dim.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(dim.paddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             OptionButton(
@@ -984,7 +1071,7 @@ fun OptionsPage(
         if (showThemeDialog) {
             AlertDialog(
                 onDismissRequest = { showThemeDialog = false },
-                title = { Text(stringResource(R.string.select_theme), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black) },
+                title = { Text(stringResource(R.string.select_theme), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontSize = dim.titleSize) },
                 text = {
                     Column {
                         ThemeOptionItem(
@@ -1018,7 +1105,7 @@ fun OptionsPage(
                 },
                 confirmButton = {
                     TextButton(onClick = { showThemeDialog = false }) {
-                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontSize = dim.bodySize)
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.surface
@@ -1029,11 +1116,12 @@ fun OptionsPage(
 
 @Composable
 fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit, isDark: Boolean) {
+    val dim = LocalAppDimensions.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = dim.paddingSmall + 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
@@ -1044,8 +1132,8 @@ fun ThemeOptionItem(text: String, isSelected: Boolean, onClick: () -> Unit, isDa
                 unselectedColor = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray
             )
         )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyLarge, color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black)
+        Spacer(modifier = Modifier.width(dim.paddingSmall))
+        Text(text = text, style = MaterialTheme.typography.bodyLarge.copy(fontSize = dim.bodySize), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black)
     }
 }
 
@@ -1057,10 +1145,11 @@ fun OptionButton(
     onClick: () -> Unit,
     isDark: Boolean
 ) {
+    val dim = LocalAppDimensions.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .height(dim.cardHeight + (if (dim.headerSize.value > 40f) 64.dp else 36.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -1069,25 +1158,25 @@ fun OptionButton(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = dim.paddingLarge),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(dim.iconSize + 32.dp),
                 shape = CircleShape,
                 color = color.copy(alpha = 0.1f)
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(dim.paddingMedium - 4.dp),
                     tint = color
                 )
             }
-            Spacer(modifier = Modifier.width(20.dp))
+            Spacer(modifier = Modifier.width(dim.paddingLarge - 4.dp))
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = dim.titleSize),
                 fontWeight = FontWeight.Bold,
                 color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black
             )
@@ -1098,9 +1187,9 @@ fun OptionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () -> Unit) {
+    val dim = LocalAppDimensions.current
     var selectedMonthIndex by remember { mutableIntStateOf(0) }
     
-    // Lazy collection: only collect from the database for the selected month
     val records by remember(selectedMonthIndex) {
         viewModel.getRecordsForMonth(if (selectedMonthIndex == 0) 0 else -1)
     }.collectAsState(initial = emptyList())
@@ -1120,7 +1209,6 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
         records.groupBy { it.date }
     }
 
-    // Pre-index scheduled slots to avoid O(N) search in every cell
     val scheduledSlots = remember(tasks) {
         val slots = mutableSetOf<TimeSlot>()
         tasks.forEach { task -> slots.addAll(task.times) }
@@ -1130,10 +1218,10 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.monthly_progress), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.monthly_progress), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, fontSize = dim.titleSize) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(dim.iconSize))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
@@ -1149,7 +1237,7 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = dim.paddingLarge, vertical = dim.paddingSmall + 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StatusTabButton(
@@ -1166,22 +1254,22 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dim.paddingSmall))
             
             Text(
                 text = monthName,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = dim.titleSize),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dim.paddingMedium))
 
             Card(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = dim.paddingMedium)
                     .fillMaxWidth()
                     .weight(1f),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
@@ -1193,21 +1281,21 @@ fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () ->
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(BluePrimary)
-                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                            .padding(vertical = dim.paddingSmall + 4.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TableHeaderCell(stringResource(R.string.date), Modifier.weight(1.2f))
-                        VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
+                        VerticalDivider(modifier = Modifier.height(dim.paddingMedium), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell(TimeSlot.Morning.title, Modifier.weight(1f))
-                        VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
+                        VerticalDivider(modifier = Modifier.height(dim.paddingMedium), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell(TimeSlot.Afternoon.title, Modifier.weight(1f))
-                        VerticalDivider(modifier = Modifier.height(16.dp), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
+                        VerticalDivider(modifier = Modifier.height(dim.paddingMedium), color = Color.White.copy(alpha = 0.75f), thickness = 1.dp)
                         TableHeaderCell(TimeSlot.Evening.title, Modifier.weight(1f))
                     }
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = dim.paddingMedium)
                     ) {
                         items(dates) { date ->
                             val dateStr = remember(date) { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date) }
@@ -1231,6 +1319,7 @@ fun StatusTabButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val dim = LocalAppDimensions.current
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) BluePrimary else MaterialTheme.colorScheme.surface,
         label = "backgroundColorAnim"
@@ -1242,7 +1331,7 @@ fun StatusTabButton(
 
     Surface(
         modifier = modifier
-            .height(48.dp)
+            .height(dim.buttonHeight - 8.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         color = backgroundColor,
@@ -1254,7 +1343,7 @@ fun StatusTabButton(
                 text = text,
                 fontWeight = FontWeight.Bold,
                 color = contentColor,
-                fontSize = 14.sp
+                fontSize = dim.labelSize
             )
         }
     }
@@ -1268,7 +1357,7 @@ fun TableHeaderCell(text: String, modifier: Modifier) {
         textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         color = Color.White,
-        fontSize = 14.sp
+        fontSize = LocalAppDimensions.current.labelSize
     )
 }
 
@@ -1288,20 +1377,21 @@ fun formatReportDate(date: Date): String {
 
 @Composable
 fun StatusRow(displayDate: String, date: Date, rowRecords: List<TaskRecord>, scheduledSlots: Set<TimeSlot>) {
+    val dim = LocalAppDimensions.current
     val today = remember {
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        cal.time
+        val currentCal = Calendar.getInstance()
+        currentCal.set(Calendar.HOUR_OF_DAY, 0)
+        currentCal.set(Calendar.MINUTE, 0)
+        currentCal.set(Calendar.SECOND, 0)
+        currentCal.set(Calendar.MILLISECOND, 0)
+        currentCal.time
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().height(dim.cardHeight - 16.dp + (if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 48.dp else 24.dp) else 0.dp)).padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(displayDate, modifier = Modifier.weight(1.2f), textAlign = TextAlign.Center, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
+        Text(displayDate, modifier = Modifier.weight(1.2f), textAlign = TextAlign.Center, fontSize = dim.labelSize, color = MaterialTheme.colorScheme.onSurface)
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
         StatusCell(Modifier.weight(1f).fillMaxHeight(), getStatusFast(TimeSlot.Morning, date, today, rowRecords, scheduledSlots))
         VerticalDivider(color = Color.Gray.copy(alpha = 0.75f), thickness = 0.5.dp)
@@ -1313,10 +1403,11 @@ fun StatusRow(displayDate: String, date: Date, rowRecords: List<TaskRecord>, sch
 
 @Composable
 fun StatusCell(modifier: Modifier, status: StatusType) {
+    val dim = LocalAppDimensions.current
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         when (status) {
-            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = stringResource(R.string.task_completed), tint = Color(0xFF388E3C), modifier = Modifier.size(24.dp))
-            StatusType.None -> Text("-", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
+            StatusType.Taken -> Icon(Icons.Default.CheckBox, contentDescription = stringResource(R.string.task_completed), tint = Color(0xFF388E3C), modifier = Modifier.size(dim.iconSize))
+            StatusType.None -> Text("-", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = dim.bodySize)
             StatusType.Future -> { /* Empty */ }
             else -> { /* No Cross used */ }
         }
@@ -1334,7 +1425,6 @@ fun getStatusFast(slot: TimeSlot, date: Date, today: Date, records: List<TaskRec
     return if (date.before(today)) {
         if (scheduledSlots.contains(slot)) StatusType.None else StatusType.Future
     } else {
-        // Today
         StatusType.Future
     }
 }
@@ -1367,13 +1457,14 @@ fun AboutPage(
     onNavigateToContact: () -> Unit,
     onBack: () -> Unit
 ) {
+    val dim = LocalAppDimensions.current
     Scaffold(
         topBar = {
             LargeTopAppBar(
-                title = { Text(stringResource(R.string.about), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(stringResource(R.string.about), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, fontSize = dim.headerSize) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(dim.iconSize))
                     }
                 },
                 colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent)
@@ -1384,8 +1475,8 @@ fun AboutPage(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(dim.paddingLarge),
+            verticalArrangement = Arrangement.spacedBy(dim.paddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AboutOptionItem(text = stringResource(R.string.about_the_app), onClick = onNavigateToAboutApp)
@@ -1399,10 +1490,11 @@ fun AboutPage(
 
 @Composable
 fun AboutOptionItem(text: String, onClick: () -> Unit) {
+    val dim = LocalAppDimensions.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(dim.cardHeight)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -1411,20 +1503,21 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = dim.paddingMedium + 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = (dim.bodySize.value + 2f).sp),
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null, 
-                tint = Color.LightGray
+                tint = Color.LightGray,
+                modifier = Modifier.size(dim.iconSize)
             )
         }
     }
@@ -1433,13 +1526,14 @@ fun AboutOptionItem(text: String, onClick: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    val dim = LocalAppDimensions.current
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) },
+                title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, fontSize = dim.titleSize) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.go_back), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(dim.iconSize))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.Transparent)
@@ -1450,7 +1544,7 @@ fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnS
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(dim.paddingLarge)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
@@ -1462,6 +1556,7 @@ fun SubAboutPage(title: String, onBack: () -> Unit, content: @Composable ColumnS
 
 @Composable
 fun TaskEditCard(task: Task, onDelete: () -> Unit) {
+    val dim = LocalAppDimensions.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -1472,13 +1567,13 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(dim.paddingMedium)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(dim.iconSize + 24.dp)
                     .clip(CircleShape)
                     .background(Color(0xFFCBE6FF)),
                 contentAlignment = Alignment.Center
@@ -1486,20 +1581,21 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
                     contentDescription = null,
-                    tint = BluePrimary
+                    tint = BluePrimary,
+                    modifier = Modifier.size(dim.iconSize)
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(dim.paddingMedium))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = task.name,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleLarge.copy(fontSize = (dim.titleSize.value - 2f).sp),
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(R.string.task_details_format, task.numberOfTablets, task.times.joinToString(", ") { it.title }, task.priority),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = dim.labelSize),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -1509,7 +1605,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
                     contentColor = Color(0xFFB71C1C)
                 )
             ) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_task_desc), tint = Color(0xFFB71C1C))
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_task_desc), tint = Color(0xFFB71C1C), modifier = Modifier.size(dim.iconSize))
             }
         }
     }
@@ -1517,6 +1613,7 @@ fun TaskEditCard(task: Task, onDelete: () -> Unit) {
 
 @Composable
 fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit, isDark: Boolean) {
+    val dim = LocalAppDimensions.current
     val backgroundColor by animateColorAsState(
         targetValue = if (isTaken) {
             if (isDark) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else Color(0xFFEEF6FB)
@@ -1546,7 +1643,7 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit, isDark
     ) {
         Row(
             modifier = Modifier
-                .padding(12.dp)
+                .padding(dim.paddingSmall + 4.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1556,30 +1653,32 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit, isDark
                 colors = CheckboxDefaults.colors(
                     checkedColor = BluePrimary,
                     uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                ),
+                modifier = Modifier.scale(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 1.6f else 1.3f) else 1f)
             )
             
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(32.dp)
+                    .height(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 64.dp else 48.dp) else 32.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(priorityColor)
             )
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(dim.paddingSmall + 4.dp))
             
             Column {
                 Text(
                     text = task.name,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
+                        fontSize = (dim.bodySize.value + 2f).sp,
                         color = if (isTaken) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Text(
                     text = task.numberOfTablets,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = (dim.labelSize.value - 2f).sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -1589,23 +1688,24 @@ fun TaskChecklistCard(task: Task, isTaken: Boolean, onToggle: () -> Unit, isDark
 
 @Composable
 fun EmptyStateView(icon: androidx.compose.ui.graphics.vector.ImageVector, message: String) {
+    val dim = LocalAppDimensions.current
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(dim.paddingLarge + 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(84.dp),
+            modifier = Modifier.size(dim.largeIconSize),
             tint = BluePrimary.copy(alpha = 0.3f)
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(dim.paddingLarge))
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = dim.bodySize),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
@@ -1618,6 +1718,7 @@ fun AddTaskDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, String, List<TimeSlot>, Priority) -> Unit
 ) {
+    val dim = LocalAppDimensions.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var name by remember { mutableStateOf("") }
@@ -1636,7 +1737,7 @@ fun AddTaskDialog(
     ) {
         Card(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
+                .fillMaxWidth(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 0.5f else 0.6f) else 0.9f)
                 .wrapContentHeight()
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = {
@@ -1650,27 +1751,26 @@ fun AddTaskDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(24.dp)
+                    .padding(dim.paddingLarge)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(dim.paddingMedium + 4.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    @Suppress("DEPRECATION")
                     Text(
                         text = stringResource(R.string.new_task),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontSize = (dim.titleSize.value + 4f).sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(dim.paddingMedium)) {
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text(stringResource(R.string.task_name_label)) },
-                        placeholder = { Text(stringResource(R.string.task_name_placeholder)) },
+                        label = { Text(stringResource(R.string.task_name_label), fontSize = dim.labelSize) },
+                        placeholder = { Text(stringResource(R.string.task_name_placeholder), fontSize = dim.labelSize) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1680,14 +1780,15 @@ fun AddTaskDialog(
                             focusedTextColor = MaterialTheme.colorScheme.onSurface,
                             unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = dim.bodySize),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) })
                     )
                     OutlinedTextField(
                         value = tablets,
                         onValueChange = { tablets = it },
-                        label = { Text(stringResource(R.string.details_label)) },
-                        placeholder = { Text(stringResource(R.string.details_placeholder)) },
+                        label = { Text(stringResource(R.string.details_label), fontSize = dim.labelSize) },
+                        placeholder = { Text(stringResource(R.string.details_placeholder), fontSize = dim.labelSize) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -1697,6 +1798,7 @@ fun AddTaskDialog(
                             focusedTextColor = MaterialTheme.colorScheme.onSurface,
                             unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = dim.bodySize),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { 
                             keyboardController?.hide()
@@ -1706,10 +1808,9 @@ fun AddTaskDialog(
                 }
 
                 Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
-                    @Suppress("DEPRECATION")
                     Text(
                         text = stringResource(R.string.priority),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = (dim.titleSize.value - 4f).sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -1720,7 +1821,7 @@ fun AddTaskDialog(
                     ) {
                         priorityOptions.forEach { priority ->
                             val isSelected = selectedPriority == priority
-                            val chipColor = when(priority) {
+                            val actualChipColor = when(priority) {
                                 Priority.Low -> if (isSelected) (if (isDark) LowPriorityDark else Color(0xFF388E3C)) else (if (isDark) Color(0xFF2E3B2E) else Color(0xFFF1F8E9))
                                 Priority.Medium -> if (isSelected) (if (isDark) MediumPriorityDark else Color(0xFFFBC02D)) else (if (isDark) Color(0xFF3B3B2E) else Color(0xFFFFF9C4))
                                 Priority.High -> if (isSelected) (if (isDark) HighPriorityDark else Color(0xFFD32F2F)) else (if (isDark) Color(0xFF3B2E2E) else Color(0xFFFBE9E7))
@@ -1729,9 +1830,9 @@ fun AddTaskDialog(
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(40.dp)
+                                    .height(dim.buttonHeight - 16.dp)
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(chipColor)
+                                    .background(actualChipColor)
                                     .clickable {
                                         selectedPriority = priority
                                         keyboardController?.hide()
@@ -1743,7 +1844,7 @@ fun AddTaskDialog(
                                     text = priority.title,
                                     color = if (isSelected) Color.White else (if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f)),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    fontSize = 12.sp
+                                    fontSize = (dim.labelSize.value - 2f).sp
                                 )
                             }
                         }
@@ -1754,7 +1855,7 @@ fun AddTaskDialog(
                     @Suppress("DEPRECATION")
                     Text(
                         text = stringResource(R.string.schedule),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = (dim.titleSize.value - 4f).sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -1765,18 +1866,18 @@ fun AddTaskDialog(
                     ) {
                         timeOptions.forEach { time ->
                             val isSelected = selectedTimes.contains(time)
-                            val chipColor = when(time) {
+                            val actualChipColor = when(time) {
                                 TimeSlot.Morning -> if (isSelected) (if (isDark) MorningBlueDark else Color(0xFF1976D2)) else (if (isDark) Color(0xFF2E343B) else Color(0xFFE3F2FD))
                                 TimeSlot.Afternoon -> if (isSelected) (if (isDark) AfternoonGreenDark else Color(0xFF388E3C)) else (if (isDark) Color(0xFF2E3B2E) else Color(0xFFF1F8E9))
                                 TimeSlot.Evening -> if (isSelected) (if (isDark) EveningRedDark else Color(0xFFD32F2F)) else (if (isDark) Color(0xFF3B2E2E) else Color(0xFFFBE9E7))
                             }
-                            
+
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(40.dp)
+                                    .height(dim.buttonHeight - 16.dp)
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(chipColor)
+                                    .background(actualChipColor)
                                     .clickable {
                                         selectedTimes = if (isSelected) selectedTimes - time else selectedTimes + time
                                         keyboardController?.hide()
@@ -1788,7 +1889,7 @@ fun AddTaskDialog(
                                     text = time.title,
                                     color = if (isSelected) Color.White else (if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f)),
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    fontSize = 12.sp
+                                    fontSize = (dim.labelSize.value - 2f).sp
                                 )
                             }
                         }
@@ -1805,15 +1906,16 @@ fun AddTaskDialog(
                         enabled = name.isNotBlank() && tablets.isNotBlank() && selectedTimes.isNotEmpty(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(dim.buttonHeight),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = BluePrimary,
                             contentColor = Color.White
                         )
                     ) {
-                        Text(stringResource(R.string.add_to_list), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.add_to_list), fontWeight = FontWeight.Bold, fontSize = dim.bodySize)
                     }
+                    @Suppress("DEPRECATION")
                     TextButton(
                         onClick = {
                             keyboardController?.hide()
@@ -1822,7 +1924,7 @@ fun AddTaskDialog(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.cancel), color = if (isDark) MaterialTheme.colorScheme.onSurface else Color.Black, fontWeight = FontWeight.Medium, fontSize = dim.bodySize)
                     }
                 }
             }

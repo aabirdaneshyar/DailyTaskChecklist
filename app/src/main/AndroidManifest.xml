@@ -10,16 +10,27 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:resizeableActivity="false"
         android:theme="@style/Theme.App.Starting">
+
+        <!-- Official Android 12+ Opt-outs to prevent orientation overrides -->
+        <property android:name="android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE" android:value="false"/>
+        <property android:name="android.window.PROPERTY_COMPAT_ALLOW_DISPLAY_ORIENTATION_OVERRIDE" android:value="false"/>
+        <property android:name="android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE" android:value="false"/>
+
+        <meta-data android:name="android.max_aspect" android:value="2.4" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
+            android:resizeableActivity="false"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|layoutDirection|locale"
+            tools:ignore="LockedOrientationActivity"
             android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

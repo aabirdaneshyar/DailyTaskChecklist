@@ -43,6 +43,7 @@ data class OnboardingData(
 fun OnboardingScreen(
     onFinished: () -> Unit
 ) {
+    val dim = LocalAppDimensions.current
     val onboardingPages = listOf(
         OnboardingData(
             titleRes = R.string.onboarding_title_1,
@@ -82,7 +83,7 @@ fun OnboardingScreen(
             exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 48.dp, end = 16.dp)
+                .padding(top = dim.paddingLarge + 24.dp, end = dim.paddingMedium)
                 .zIndex(1f)
         ) {
             TextButton(
@@ -92,7 +93,7 @@ fun OnboardingScreen(
                     text = stringResource(R.string.skip),
                     color = if (isDark) BluePrimaryDark else BluePrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = dim.bodySize
                 )
             }
         }
@@ -115,20 +116,20 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = 32.dp)
-                    .padding(bottom = 32.dp),
+                    .padding(horizontal = dim.paddingLarge + 8.dp)
+                    .padding(bottom = dim.paddingLarge + 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Indicators
                 Row(
-                    modifier = Modifier.padding(bottom = 32.dp),
+                    modifier = Modifier.padding(bottom = dim.paddingLarge + 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     repeat(onboardingPages.size) { index ->
                         val isSelected = pagerState.currentPage == index
                         Box(
                             modifier = Modifier
-                                .size(if (isSelected) 12.dp else 8.dp)
+                                .size(if (isSelected) (if (dim.headerSize.value > 30f) 18.dp else 12.dp) else (if (dim.headerSize.value > 30f) 12.dp else 8.dp))
                                 .clip(CircleShape)
                                 .background(
                                     if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
@@ -150,7 +151,7 @@ fun OnboardingScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(dim.buttonHeight),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = BluePrimary,
@@ -163,7 +164,7 @@ fun OnboardingScreen(
                         } else {
                             stringResource(R.string.next)
                         },
-                        fontSize = 18.sp,
+                        fontSize = (dim.bodySize.value + 2f).sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -174,23 +175,24 @@ fun OnboardingScreen(
 
 @Composable
 fun OnboardingPage(data: OnboardingData) {
+    val dim = LocalAppDimensions.current
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally, // Centrally aligned
+            .padding(dim.paddingLarge),
+        horizontalAlignment = Alignment.CenterHorizontally, 
         verticalArrangement = Arrangement.Center
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp)
-                .padding(bottom = 40.dp),
+                .height(if (dim.headerSize.value > 30f) 360.dp else 240.dp)
+                .padding(bottom = dim.paddingLarge + 16.dp),
             contentAlignment = Alignment.Center
         ) {
             if (data.imageRes != null) {
                 Surface(
-                    modifier = Modifier.size(180.dp),
+                    modifier = Modifier.size(if (dim.headerSize.value > 30f) 260.dp else 180.dp),
                     shape = RoundedCornerShape(40.dp),
                     color = Color.Transparent,
                     shadowElevation = 8.dp
@@ -222,58 +224,61 @@ fun OnboardingPage(data: OnboardingData) {
             text = stringResource(data.titleRes),
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
-                lineHeight = 42.sp
+                fontSize = (dim.headerSize.value + 4f).sp,
+                lineHeight = (dim.headerSize.value + 16f).sp
             ),
-            textAlign = TextAlign.Center, // Centrally aligned
+            textAlign = TextAlign.Center, 
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = stringResource(data.descriptionRes),
             style = MaterialTheme.typography.bodyLarge.copy(
-                lineHeight = 28.sp
+                fontSize = dim.bodySize,
+                lineHeight = (dim.bodySize.value + 12f).sp
             ),
-            textAlign = TextAlign.Center, // Centrally aligned
+            textAlign = TextAlign.Center, 
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = dim.paddingMedium)
         )
     }
 }
 
 @Composable
 fun AddTaskIllustration() {
+    val dim = LocalAppDimensions.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth()
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(if (dim.headerSize.value > 30f) 0.6f else 0.8f),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Row(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier.padding(dim.paddingMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(4.dp, 24.dp)
+                        .size(4.dp, if (dim.headerSize.value > 30f) 36.dp else 24.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFEF4444)) // StatusRed
+                        .background(Color(0xFFEF4444)) 
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(dim.paddingSmall + 4.dp))
                 Column {
-                    Box(modifier = Modifier.width(80.dp).height(8.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), CircleShape))
+                    Box(modifier = Modifier.width(if (dim.headerSize.value > 30f) 120.dp else 80.dp).height(8.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), CircleShape))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Box(modifier = Modifier.width(40.dp).height(6.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f), CircleShape))
+                    Box(modifier = Modifier.width(if (dim.headerSize.value > 30f) 60.dp else 40.dp).height(6.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f), CircleShape))
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(dim.paddingMedium))
         Surface(
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(if (dim.headerSize.value > 30f) 84.dp else 56.dp),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primary,
             shadowElevation = 4.dp
@@ -282,7 +287,7 @@ fun AddTaskIllustration() {
                 Icons.Default.Add,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(if (dim.headerSize.value > 30f) 20.dp else 12.dp)
             )
         }
     }
@@ -290,6 +295,7 @@ fun AddTaskIllustration() {
 
 @Composable
 fun TimeSlotIllustration() {
+    val dim = LocalAppDimensions.current
     Row(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
@@ -299,18 +305,18 @@ fun TimeSlotIllustration() {
             repeat(3) { index ->
                 val color = when(index) {
                     0 -> MaterialTheme.colorScheme.primary
-                    1 -> Color(0xFF22C55E) // StatusGreen
-                    else -> Color(0xFFEF4444) // StatusRed
+                    1 -> Color(0xFF22C55E) 
+                    else -> Color(0xFFEF4444) 
                 }
                 Surface(
-                    modifier = Modifier.size(64.dp, 40.dp),
-                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.size(if (dim.headerSize.value > 30f) 100.dp else 64.dp, if (dim.headerSize.value > 30f) 64.dp else 40.dp),
+                    shape = RoundedCornerShape(if (dim.headerSize.value > 30f) 32.dp else 20.dp),
                     color = if (index == 0) color else color.copy(alpha = 0.1f),
                     border = if (index != 0) androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.3f)) else null
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         if (index == 0) {
-                            Box(modifier = Modifier.width(30.dp).height(4.dp).background(MaterialTheme.colorScheme.onPrimary, CircleShape))
+                            Box(modifier = Modifier.width(if (dim.headerSize.value > 30f) 50.dp else 30.dp).height(if (dim.headerSize.value > 30f) 6.dp else 4.dp).background(MaterialTheme.colorScheme.onPrimary, CircleShape))
                         }
                     }
                 }
@@ -321,14 +327,15 @@ fun TimeSlotIllustration() {
 
 @Composable
 fun ProgressIllustration() {
+    val dim = LocalAppDimensions.current
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Card(
-            modifier = Modifier.fillMaxWidth(0.9f),
+            modifier = Modifier.fillMaxWidth(if (dim.headerSize.value > 30f) 0.7f else 0.9f),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Column(modifier = Modifier.padding(8.dp)) {
+            Column(modifier = Modifier.padding(dim.paddingSmall)) {
                 repeat(4) { rowIndex ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -336,12 +343,12 @@ fun ProgressIllustration() {
                     ) {
                         repeat(4) { colIndex ->
                             if (rowIndex == 0) {
-                                Box(modifier = Modifier.size(24.dp, 8.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape))
+                                Box(modifier = Modifier.size(if (dim.headerSize.value > 30f) 36.dp else 24.dp, 8.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape))
                             } else {
                                 if (colIndex > 0 && (rowIndex + colIndex) % 3 == 0) {
-                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF22C55E), modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF22C55E), modifier = Modifier.size(if (dim.headerSize.value > 30f) 28.dp else 20.dp))
                                 } else {
-                                    Box(modifier = Modifier.size(16.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f), CircleShape))
+                                    Box(modifier = Modifier.size(if (dim.headerSize.value > 30f) 24.dp else 16.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f), CircleShape))
                                 }
                             }
                         }
