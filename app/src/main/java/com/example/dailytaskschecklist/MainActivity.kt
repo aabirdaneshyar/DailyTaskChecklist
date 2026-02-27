@@ -17,6 +17,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -117,7 +118,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TaskAppContainer(viewModel)
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        TaskAppContainer(viewModel)
+                        
+                        // Full-Screen Landscape Overlay (Failsafe for forced landscape)
+                        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                            LandscapeOverlay()
+                        }
+                    }
                 }
             }
         }
@@ -136,6 +144,45 @@ class MainActivity : ComponentActivity() {
         // If system configuration changes to landscape, immediately force it back
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
+}
+
+@Composable
+fun LandscapeOverlay() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .clickable(enabled = false) {}, // Block clicks to underlying UI
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ScreenRotation,
+                contentDescription = null,
+                modifier = Modifier.size(84.dp),
+                tint = BluePrimary
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(R.string.landscape_warning_title),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.landscape_warning_message),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -1027,7 +1074,8 @@ fun OptionsPage(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(dim.paddingLarge),
+                .padding(horizontal = dim.paddingLarge, vertical = dim.paddingSmall)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(dim.paddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -1066,6 +1114,7 @@ fun OptionsPage(
                 onClick = onNavigateToAbout,
                 isDark = isDark
             )
+            Spacer(modifier = Modifier.height(dim.paddingMedium))
         }
 
         if (showThemeDialog) {
@@ -1188,7 +1237,7 @@ fun OptionButton(
 @Composable
 fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () -> Unit) {
     val dim = LocalAppDimensions.current
-    var selectedMonthIndex by remember { mutableIntStateOf(0) }
+    var selectedMonthIndex by remember { mutableStateOf(0) }
     
     val records by remember(selectedMonthIndex) {
         viewModel.getRecordsForMonth(if (selectedMonthIndex == 0) 0 else -1)
@@ -1475,7 +1524,8 @@ fun AboutPage(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(dim.paddingLarge),
+                .padding(horizontal = dim.paddingLarge, vertical = dim.paddingSmall)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(dim.paddingMedium),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -1484,6 +1534,7 @@ fun AboutPage(
             AboutOptionItem(text = stringResource(R.string.privacy_policy), onClick = onNavigateToPrivacy)
             AboutOptionItem(text = stringResource(R.string.terms_disclaimer), onClick = onNavigateToTerms)
             AboutOptionItem(text = stringResource(R.string.contact_support), onClick = onNavigateToContact)
+            Spacer(modifier = Modifier.height(dim.paddingMedium))
         }
     }
 }
@@ -1739,12 +1790,7 @@ fun AddTaskDialog(
             modifier = Modifier
                 .fillMaxWidth(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 0.5f else 0.6f) else 0.9f)
                 .wrapContentHeight()
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                        keyboardController?.hide()
-                    })
-                },
+                .imePadding(), // Automatically adds padding when keyboard is visible
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -1752,7 +1798,15 @@ fun AddTaskDialog(
             Column(
                 modifier = Modifier
                     .padding(dim.paddingLarge)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(dim.paddingMedium + 4.dp)
             ) {

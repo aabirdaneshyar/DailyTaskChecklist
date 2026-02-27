@@ -103,4 +103,8 @@
     <string name="default_mode">Default Theme</string>
     <string name="select_theme">Select Theme</string>
 
+    <!-- Landscape Warning -->
+    <string name="landscape_warning_title">Portrait Only</string>
+    <string name="landscape_warning_message">This app is designed for portrait mode. Please rotate your device to continue.</string>
+
 </resources>
