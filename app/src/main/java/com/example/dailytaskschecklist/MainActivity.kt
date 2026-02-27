@@ -1237,7 +1237,7 @@ fun OptionButton(
 @Composable
 fun MonthlyStatusPage(viewModel: TaskViewModel, tasks: List<Task>, onBack: () -> Unit) {
     val dim = LocalAppDimensions.current
-    var selectedMonthIndex by remember { mutableStateOf(0) }
+    var selectedMonthIndex by remember { mutableIntStateOf(0) }
     
     val records by remember(selectedMonthIndex) {
         viewModel.getRecordsForMonth(if (selectedMonthIndex == 0) 0 else -1)
@@ -1790,7 +1790,13 @@ fun AddTaskDialog(
             modifier = Modifier
                 .fillMaxWidth(if (dim.headerSize.value > 30f) (if (dim.headerSize.value > 40f) 0.5f else 0.6f) else 0.9f)
                 .wrapContentHeight()
-                .imePadding(), // Automatically adds padding when keyboard is visible
+                .imePadding() // Automatically adds padding when keyboard is visible
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                    })
+                },
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -1799,14 +1805,7 @@ fun AddTaskDialog(
                 modifier = Modifier
                     .padding(dim.paddingLarge)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        focusManager.clearFocus()
-                        keyboardController?.hide()
-                    },
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(dim.paddingMedium + 4.dp)
             ) {
