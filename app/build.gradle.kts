@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "com.example.dailytaskschecklist"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.checklistdev.tasks"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 17
-        versionName = "1.0.17"
+        targetSdk = 36
+        versionCode = 18
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,7 +53,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation(libs.google.android.material)
 
-    val roomVersion = "2.6.1"
+    val roomVersion = "2.7.0-alpha13" // Recommended for KSP2 and latest SDKs
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
